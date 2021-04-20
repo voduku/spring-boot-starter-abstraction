@@ -1,4 +1,4 @@
-package io.github.voduku.model;
+package com.github.voduku.model;
 
 import static java.util.function.Predicate.not;
 
@@ -9,13 +9,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * // @formatter:off
+ * All search classes should extends this class. This class's fields will be mapped into {@link org.springframework.web.bind.annotation.RequestParam} via data binding.
+ * {@link #excludables} contains all the fields that are excludable when querying.
+ * {@link #includes} contains all the fields to be included.
+ * {@link #excludes} contains all the fields to be excluded.
+ * {@link #excludeMetadata} if true, all fields like {@link AbstractEntity} will be ignored.
+ * // @formatter:on
+ *
  * @author VuDo
  * @since 1.0.0
  */
@@ -25,6 +35,7 @@ import org.springframework.util.CollectionUtils;
 public abstract class AbstractSearch<T extends Enum<T>> {
 
   @JsonIgnore
+  @Setter(AccessLevel.NONE)
   @Parameter(hidden = true)
   protected Enum<T>[] excludables;
   @JsonIgnore
@@ -35,6 +46,7 @@ public abstract class AbstractSearch<T extends Enum<T>> {
   protected boolean excludeMetadata = false;
 
   @JsonIgnore
+  @Setter(AccessLevel.NONE)
   @Parameter(hidden = true)
   private boolean configured = false;
 

@@ -8,11 +8,38 @@
     <version>2.4.5</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
-  <groupId>io.github.voduku</groupId>
+
+  <groupId>com.github.voduku</groupId>
   <artifactId>spring-boot-starter-abstraction</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+
   <name>spring-boot-starter-abstraction</name>
   <description>Demo project for Spring Boot</description>
+  <url>https://github.com/voduku/spring-boot-starter-abstraction</url>
+
+  <licenses>
+    <license>
+      <name>MIT License</name>
+      <url>https://www.opensource.org/licenses/mit-license.php</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://github.com/voduku/spring-boot-starter-abstraction</url>
+    <connection>scm:git:git://github.com/voduku/spring-boot-starter-abstraction.git</connection>
+    <developerConnection>scm:git:git@github.com:voduku/spring-boot-starter-abstraction.git</developerConnection>
+  </scm>
+
+  <developers>
+    <developer>
+      <email>dovu42@gmail.com</email>
+      <name>Vu Do</name>
+      <url>https://github.com/voduku</url>
+      <id>VuDo</id>
+    </developer>
+  </developers>
+
 
   <properties>
     <java.version>11</java.version>

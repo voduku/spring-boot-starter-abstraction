@@ -1,4 +1,4 @@
-package io.github.voduku.model;
+package com.github.voduku.model;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -8,6 +8,7 @@ import lombok.extern.jackson.Jacksonized;
 import org.springframework.validation.FieldError;
 
 /**
+ * Wrapper for a rest response
  * @author VuDo
  * @since 1.0.0
  */

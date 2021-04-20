@@ -1,4 +1,4 @@
-package io.github.voduku.repository;
+package com.github.voduku.repository;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
@@ -7,7 +7,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.voduku.model.AbstractSearch;
+import com.github.voduku.model.AbstractSearch;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +43,13 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * // @formatter:off
+ * Provide a string based approach to create HQL queries and perform executions
+ * You can override any method to change query creation and result mapping processes
+ * // @formatter:on
+ *
+ * @param <ENTITY> Entity Type
+ * @param <KEY> Entity Key
  * @author VuDo
  * @since 1.0.0
  */
@@ -65,8 +72,9 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
       .disable(FAIL_ON_UNKNOWN_PROPERTIES).disable(FAIL_ON_EMPTY_BEANS)
       .enable(WRITE_DATES_AS_TIMESTAMPS);
   private static final Set<String> RESERVED_SEARCH_FIELDS = Arrays.stream(AbstractSearch.Fields.values()).map(Enum::name).collect(Collectors.toSet());
-  private static final TypeReference<LinkedHashMap<String, Object>> mapType = new TypeReference<>() {
-  };
+  // @formatter:off
+  private static final TypeReference<LinkedHashMap<String, Object>> mapType = new TypeReference<>() {};
+  // @formatter:on
   protected final Class<ENTITY> clazz;
   protected final String entityName;
   protected final List<String> idFields;
@@ -76,17 +84,23 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
   @Getter
   protected boolean distinct = false;
 
+  /**
+   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This takes ~0.0001 seconds to
+   * finish. It could be even faster on cloud server
+   */
   @SneakyThrows
   @SuppressWarnings("unchecked")
   public AbstractRepository() {
-    // This line takes ~0.00005 seconds. It could be even faster on aws.
-
     this.clazz = (Class<ENTITY>) Objects.requireNonNull(GenericTypeResolver.resolveTypeArguments(getClass(), AbstractRepository.class))[0];
     this.entityName = clazz.getSimpleName();
     this.idFields = Arrays.stream(clazz.getDeclaredFields()).filter(field -> Objects.nonNull(field.getAnnotation(Id.class))).map(Field::getName)
         .collect(Collectors.toUnmodifiableList());
   }
 
+  /**
+   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is even
+   * faster than {@link #AbstractRepository()}
+   */
   public AbstractRepository(Class<ENTITY> clazz) {
     this.clazz = clazz;
     this.entityName = clazz.getSimpleName();
@@ -94,17 +108,38 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
         .collect(Collectors.toUnmodifiableList());
   }
 
+  /**
+   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is the
+   * fastest but requires you to do tedious works if you have many entities.
+   */
   public AbstractRepository(Class<ENTITY> clazz, List<String> idFields) {
     this.clazz = clazz;
     this.entityName = clazz.getSimpleName();
     this.idFields = idFields;
   }
 
+  /**
+   * Get an entity with given {@param key} with optional functionalities to optimize database request and response
+   *
+   * @param key    entity key
+   * @param params optional customizing params
+   * @return an {@link ENTITY} entity
+   */
   @Override
   public ENTITY get(KEY key, AbstractSearch<?> params) {
     return getEntity(key, params);
   }
 
+  /**
+   * // @formatter:off
+   * Search a {@link Slice} of {@link ENTITY} entities filtering by subclasses of {@link AbstractSearch} with options to customize response to get only what is needed all the way to database and back.
+   * <br>Correct usage of this api should improve the overall performance of the server.
+   * // @formatter:on
+   *
+   * @param params filtering params {@link AbstractSearch}
+   * @param pageable paging for the search
+   * @return a {@link Slice} {@link ENTITY} which is never null other wise throw an exception if something goes wrong in the process. Ex: no entity found for the given key.
+   */
   @Override
   public Slice<ENTITY> search(AbstractSearch<?> params, Pageable pageable) {
     List<ENTITY> results = findEntities(params, pageable);
@@ -112,6 +147,16 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
     return new SliceImpl<>(results, pageable, hasNext);
   }
 
+  /**
+   * // @formatter:off
+   * Search a {@link Page} of {@link ENTITY} entities filtering by subclasses of {@link AbstractSearch} with options to customize response to get only what is needed all the way to database and back.
+   * <br>Correct usage of this api should improve the overall performance of the server.
+   * // @formatter:on
+   *
+   * @param params filtering params {@link AbstractSearch}
+   * @param pageable paging for the search
+   * @return an updated {@link ENTITY} which is never null other wise throw an exception if something goes wrong in the process. Ex: no entity found for the given key.
+   */
   @Override
   public Page<ENTITY> searchPage(AbstractSearch<?> params, Pageable pageable) {
     long count = count(params);
@@ -119,10 +164,24 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
     return new PageImpl<>(results, pageable, count);
   }
 
+  /**
+   * Find entities. If there is no field(s) to be excluded from the original entity, fallback to regular query.
+   *
+   * @param params   search params
+   * @param pageable paging
+   * @return a list of entities
+   */
   protected List<ENTITY> findEntities(AbstractSearch<?> params, Pageable pageable) {
     return CollectionUtils.isEmpty(params.getExcludes()) ? findAll(params, pageable) : customFindAll(params, pageable);
   }
 
+  /**
+   * Get an entity by key. If there is no field(s) to be excluded from the original entity, fallback to regular query.
+   *
+   * @param params search params
+   * @param key    entity key
+   * @return an entity if found
+   */
   protected ENTITY getEntity(KEY key, AbstractSearch<?> params) {
     return CollectionUtils.isEmpty(params.getExcludes()) ? getByKey(key, params) : customGetByKey(key, params);
   }

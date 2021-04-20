@@ -1,11 +1,15 @@
-package io.github.voduku.service;
+package com.github.voduku.service;
 
-import io.github.voduku.model.AbstractSearch;
+import com.github.voduku.model.AbstractSearch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 /**
+ * Basic CRUD functionalities with options to customizable search to reduce memory foot print
+ * @param <REQUEST> Request Type
+ * @param <RESPONSE> Response Type
+ * @param <KEY> Entity Key Type
  * @author VuDo
  * @since 1.0.0
  */

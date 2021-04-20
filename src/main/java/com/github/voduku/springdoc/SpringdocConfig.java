@@ -1,11 +1,12 @@
-package io.github.voduku.springdoc;
+package com.github.voduku.springdoc;
 
-import io.github.voduku.model.AbstractEntity;
-import io.github.voduku.model.AbstractSearch;
-import io.github.voduku.model.criteria.DateCriteria;
-import io.github.voduku.model.criteria.DecimalCriteria;
-import io.github.voduku.model.criteria.NumberCriteria;
-import io.github.voduku.model.criteria.StringCriteria;
+import com.github.voduku.model.AbstractEntity;
+import com.github.voduku.model.AbstractSearch;
+import com.github.voduku.model.criteria.DateCriteria;
+import com.github.voduku.model.criteria.DecimalCriteria;
+import com.github.voduku.model.criteria.NumberCriteria;
+import com.github.voduku.model.criteria.StringCriteria;
+import com.github.voduku.model.AbstractSearch.Fields;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.NumberSchema;
@@ -34,7 +35,7 @@ import org.springframework.web.method.HandlerMethod;
  */
 public class SpringdocConfig {
 
-  private static final List<String> EXPLICIT_SEARCH_PARAMETERS = List.of("includes", "excludes");
+  private static final List<String> EXPLICIT_SEARCH_PARAMETERS = List.of(Fields.includes.name(), Fields.excludes.name());
   private static final Set<String> AVAILABLE_METADATA = Arrays.stream(AbstractEntity.Fields.values()).map(Enum::name).collect(Collectors.toSet());
   private static final List<String> OPERATIONS_TO_BE_FILTERED = List.of("getCustom", "getSlice", "getPage");
   private static final String DOT = ".";

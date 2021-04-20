@@ -1,9 +1,9 @@
-package io.github.voduku.repository;
+package com.github.voduku.repository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.github.voduku.model.AbstractSearch;
-import io.github.voduku.model.BaseEntity;
-import io.github.voduku.model.criteria.Operator;
+import com.github.voduku.model.BaseEntity;
+import com.github.voduku.model.AbstractSearch;
+import com.github.voduku.model.criteria.Operator;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +32,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.util.CollectionUtils;
 
 /**
+ * // @formatter:off
+ * Provide a an approach which utilize Criteria APIs to create HQL queries and perform executions
+ * You can override any method to change query creation and result mapping processes
+ * // @formatter:on
+ *
  * @param <ENTITY> Entity Type
  * @param <KEY> Entity Key. This could be single column or composite key.
  * @author VuDo
@@ -46,16 +51,25 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
   protected CriteriaBuilder cb;
 
   /**
-   * Automatically pick up generic info Advantages: - Quick, hassle free Disadvantages: - A lot slower than {@link #AbstractCriteriaRepository(Class, List)}
+   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This takes ~0.0001 seconds to
+   * finish. It could be even faster on cloud server
    */
   public AbstractCriteriaRepository() {
     super();
   }
 
+  /**
+   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is even
+   * faster than {@link #AbstractCriteriaRepository()}
+   */
   public AbstractCriteriaRepository(Class<ENTITY> entity) {
     super(entity);
   }
 
+  /**
+   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is the
+   * fastest but requires you to do tedious works if you have many entities.
+   */
   public AbstractCriteriaRepository(Class<ENTITY> entity, List<String> idFields) {
     super(entity, idFields);
   }
@@ -65,16 +79,43 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     this.cb = entityManager.getCriteriaBuilder();
   }
 
+  /**
+   * Get an entity with given {@param key} with optional functionalities to optimize database request and response
+   *
+   * @param key    entity key
+   * @param params optional customizing params
+   * @return an {@link ENTITY} entity
+   */
   public ENTITY get(KEY key, AbstractSearch<?> params) {
     return getEntity(key, params);
   }
 
+  /**
+   * // @formatter:off
+   * Search a {@link Slice} of {@link ENTITY} entities filtering by subclasses of {@link AbstractSearch} with options to customize response to get only what is needed all the way to database and back.
+   * <br>Correct usage of this api should improve the overall performance of the server.
+   * // @formatter:on
+   *
+   * @param params filtering params {@link AbstractSearch}
+   * @param pageable paging for the search
+   * @return a {@link Slice} {@link ENTITY} which is never null other wise throw an exception if something goes wrong in the process. Ex: no entity found for the given key.
+   */
   public Slice<ENTITY> search(AbstractSearch<?> params, Pageable pageable) {
     List<ENTITY> results = findEntities(params, pageable);
     boolean hasNext = pageable.isPaged() && results.size() > pageable.getPageSize();
     return new SliceImpl<>(results, pageable, hasNext);
   }
 
+  /**
+   * // @formatter:off
+   * Search a {@link Page} of {@link ENTITY} entities filtering by subclasses of {@link AbstractSearch} with options to customize response to get only what is needed all the way to database and back.
+   * <br>Correct usage of this api should improve the overall performance of the server.
+   * // @formatter:on
+   *
+   * @param params filtering params {@link AbstractSearch}
+   * @param pageable paging for the search
+   * @return an updated {@link ENTITY} which is never null other wise throw an exception if something goes wrong in the process. Ex: no entity found for the given key.
+   */
   public Page<ENTITY> searchPage(AbstractSearch<?> params, Pageable pageable) {
     long count = count(params);
     List<ENTITY> results = count > 0 ? findEntities(params, pageable) : new ArrayList<>();

@@ -1,4 +1,4 @@
-package io.github.voduku.model;
+package com.github.voduku.model;
 
 import org.mapstruct.MappingTarget;
 

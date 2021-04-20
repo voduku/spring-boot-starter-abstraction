@@ -1,4 +1,4 @@
-package io.github.voduku.model;
+package com.github.voduku.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,6 +10,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Qualifier;
 
 /**
+ * Common utilities to map data
  * @author VuDo
  * @since 1.0.0
  */
