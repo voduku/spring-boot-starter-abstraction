@@ -61,6 +61,7 @@ public abstract class AbstractSearch<T extends Enum<T>> {
 
   /**
    * Create default constructor super this constructor for optimal output performance
+   * @param excludables array of excludable fields
    */
   public AbstractSearch(Enum<T>[] excludables) {
     this.excludables = excludables;

@@ -2,11 +2,11 @@ package io.github.voduku.springdoc;
 
 import io.github.voduku.model.AbstractEntity;
 import io.github.voduku.model.AbstractSearch;
+import io.github.voduku.model.AbstractSearch.Fields;
 import io.github.voduku.model.criteria.DateCriteria;
 import io.github.voduku.model.criteria.DecimalCriteria;
 import io.github.voduku.model.criteria.NumberCriteria;
 import io.github.voduku.model.criteria.StringCriteria;
-import io.github.voduku.model.AbstractSearch.Fields;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.IntegerSchema;
 import io.swagger.v3.oas.models.media.NumberSchema;

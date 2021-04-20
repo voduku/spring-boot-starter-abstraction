@@ -16,7 +16,7 @@ import org.springframework.data.domain.Slice;
 public interface CustomizableRepository<ENTITY, KEY> {
 
   /**
-   * Get an entity with given {@param key} with optional functionalities to optimize database request and response
+   * Get an entity with given {@link KEY} with optional functionalities to optimize database request and response
    * @param key entity key
    * @param params optional customizing params
    * @return an {@link ENTITY} entity
