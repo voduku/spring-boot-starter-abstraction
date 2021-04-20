@@ -119,7 +119,7 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
   }
 
   /**
-   * Get an entity with given {@param key} with optional functionalities to optimize database request and response
+   * Get an entity with given {@link KEY} with optional functionalities to optimize database request and response
    *
    * @param key    entity key
    * @param params optional customizing params

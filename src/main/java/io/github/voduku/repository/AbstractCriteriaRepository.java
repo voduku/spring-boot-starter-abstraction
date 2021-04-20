@@ -80,7 +80,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
   }
 
   /**
-   * Get an entity with given {@param key} with optional functionalities to optimize database request and response
+   * Get an entity with given {@link KEY} with optional functionalities to optimize database request and response
    *
    * @param key    entity key
    * @param params optional customizing params

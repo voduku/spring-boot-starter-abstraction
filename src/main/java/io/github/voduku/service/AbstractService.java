@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @apiNote Service utilize mapstruct to provide quick and performant mapping for objects
  * @param <REQUEST>  Request Type. Request should only contains non-ID fields. Use {@link KEY} to map key fields
  * @param <RESPONSE> Response Type
- * @param <ENTITY>   Entity Type
+ * @link ENTITY   Entity Type
  * @param <KEY>      Entity Key Type
  * @author VuDo
  * @since 1.0.0
@@ -73,7 +73,7 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
   }
 
   /**
-   * Create an {@param <ENTITY>} entity
+   * Create an {@link ENTITY} entity
    *
    * @param key     key of the entity
    * @param request request
@@ -91,7 +91,7 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
   }
 
   /**
-   * Update an {@param <ENTITY>} entity
+   * Update an {@link ENTITY} entity
    *
    * @param key     key of the entity
    * @param request request
@@ -111,7 +111,7 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
   }
 
   /**
-   * Delete an {@param <ENTITY>} entity with the given key if found. Otherwise, throw exception.
+   * Delete an {@link ENTITY} entity with the given key if found. Otherwise, throw exception.
    *
    * @param key key of the entity
    */
@@ -126,7 +126,7 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
   }
 
   /**
-   * Get an {@param <ENTITY>} entity by the given {@param key}. Otherwise, throw exception if nothing is found.
+   * Get an {@link ENTITY} entity by the given {@link KEY}. Otherwise, throw exception if nothing is found.
    *
    * @param key key of the entity
    * @return an updated {@link RESPONSE} which is never null other wise throw an exception if something goes wrong in the process. Ex: no entity found for the
@@ -142,7 +142,7 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
 
   /**
    * // @formatter:off
-   * Get an {@param <ENTITY>} entity by the given {@param key} with options to customize response to get only what is needed all the way to database and back.
+   * Get an {@link ENTITY} entity by the given {@link KEY} with options to customize response to get only what is needed all the way to database and back.
    * <br>Correct usage of this api should improve the overall performance of the server.
    * // @formatter:on
    *
