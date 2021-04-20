@@ -142,6 +142,10 @@
           <pushChanges>false</pushChanges>
           <mavenExecutorId>forked-path</mavenExecutorId>
           <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
+          <checkModificationExcludes>
+            <checkModificationExclude>pom.xml</checkModificationExclude>
+            <checkModificationExclude>**</checkModificationExclude>
+          </checkModificationExcludes>
         </configuration>
         <dependencies>
           <dependency>
