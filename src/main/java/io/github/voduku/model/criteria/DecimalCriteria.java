@@ -1,4 +1,4 @@
-package com.github.voduku.model.criteria;
+package io.github.voduku.model.criteria;
 
 import java.math.BigDecimal;
 import lombok.Getter;
