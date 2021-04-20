@@ -1,4 +1,4 @@
-package com.github.voduku.repository;
+package io.github.voduku.repository;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
 import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
@@ -7,7 +7,7 @@ import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.voduku.model.AbstractSearch;
+import io.github.voduku.model.AbstractSearch;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;

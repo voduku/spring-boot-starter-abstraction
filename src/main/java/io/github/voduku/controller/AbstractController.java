@@ -1,8 +1,8 @@
-package com.github.voduku.controller;
+package io.github.voduku.controller;
 
-import com.github.voduku.model.RestResult;
-import com.github.voduku.service.Service;
-import com.github.voduku.model.AbstractSearch;
+import io.github.voduku.model.RestResult;
+import io.github.voduku.service.Service;
+import io.github.voduku.model.AbstractSearch;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

@@ -1,4 +1,4 @@
-package com.github.voduku.model;
+package io.github.voduku.model;
 
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.NullValueCheckStrategy;

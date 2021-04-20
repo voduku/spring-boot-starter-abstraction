@@ -1,4 +1,4 @@
-package com.github.voduku.model;
+package io.github.voduku.model;
 
 import static java.util.function.Predicate.not;
 

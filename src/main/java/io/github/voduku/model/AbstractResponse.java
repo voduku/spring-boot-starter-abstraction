@@ -1,4 +1,4 @@
-package com.github.voduku.model;
+package io.github.voduku.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;

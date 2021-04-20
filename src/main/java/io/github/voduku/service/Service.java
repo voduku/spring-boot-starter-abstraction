@@ -1,6 +1,6 @@
-package com.github.voduku.service;
+package io.github.voduku.service;
 
-import com.github.voduku.model.AbstractSearch;
+import io.github.voduku.model.AbstractSearch;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;

@@ -1,4 +1,4 @@
-package com.github.voduku.model;
+package io.github.voduku.model;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
