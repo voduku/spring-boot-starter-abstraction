@@ -8,6 +8,7 @@ import org.mapstruct.ReportingPolicy;
 
 /**
  * You can use this config for quick mapper setup
+ *
  * @author VuDo
  * @since 1.0.0
  */

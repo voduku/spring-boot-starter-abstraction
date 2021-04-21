@@ -11,6 +11,7 @@ import org.mapstruct.Qualifier;
 
 /**
  * Common utilities to map data
+ *
  * @author VuDo
  * @since 1.0.0
  */

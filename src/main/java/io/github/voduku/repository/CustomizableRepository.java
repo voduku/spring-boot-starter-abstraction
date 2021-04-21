@@ -9,7 +9,7 @@ import org.springframework.data.domain.Slice;
  * Classes implementing this class should support customizable queries that only get and return what is needed based on the params {@link AbstractSearch}.
  *
  * @param <ENTITY> Entity Type
- * @param <KEY> Entity Key
+ * @param <KEY>    Entity Key
  * @author VuDo
  * @since 1.0.0
  */

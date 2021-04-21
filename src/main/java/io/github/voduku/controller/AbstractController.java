@@ -1,8 +1,8 @@
 package io.github.voduku.controller;
 
+import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.model.RestResult;
 import io.github.voduku.service.Service;
-import io.github.voduku.model.AbstractSearch;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -34,8 +34,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 /**
  * Provide basic CRUD APIs for any subclasses. Check Swagger for API details
  * <br>A controller needs a {@link Service} in order to work. Make sure you create a corresponding service.
- * @see <a href="http://locahost:8080/swagger-ui/index.html">SWAGGER</a>
+ *
  * @author VuDo
+ * @see <a href="http://locahost:8080/swagger-ui/index.html">SWAGGER</a>
  * @since 1.0.0
  */
 @Slf4j

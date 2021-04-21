@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 
 /**
  * Wrapper for a rest response
+ *
  * @author VuDo
  * @since 1.0.0
  */
