@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.springdoc.core.SpringDocUtils;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
@@ -46,6 +47,7 @@ public class SpringdocConfig {
 
   @Bean
   public OperationCustomizer customizer() {
+    SpringDocUtils.getConfig().replaceWithClass(Long.class, long.class);
     return (ops, handlerMethod) -> {
       if (ops.getParameters() == null) {
         ops.setParameters(new ArrayList<>());
