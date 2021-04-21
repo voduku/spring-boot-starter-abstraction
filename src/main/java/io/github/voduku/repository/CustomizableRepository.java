@@ -17,7 +17,8 @@ public interface CustomizableRepository<ENTITY, KEY> {
 
   /**
    * Get an entity with given {@link KEY} with optional functionalities to optimize database request and response
-   * @param key entity key
+   *
+   * @param key    entity key
    * @param params optional customizing params
    * @return an {@link ENTITY} entity
    */

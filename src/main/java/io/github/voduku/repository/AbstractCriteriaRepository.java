@@ -1,8 +1,8 @@
 package io.github.voduku.repository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.github.voduku.model.BaseEntity;
 import io.github.voduku.model.AbstractSearch;
+import io.github.voduku.model.BaseEntity;
 import io.github.voduku.model.criteria.Operator;
 import java.sql.Timestamp;
 import java.util.ArrayList;

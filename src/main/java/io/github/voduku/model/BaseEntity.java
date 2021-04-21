@@ -15,4 +15,13 @@ public interface BaseEntity {
   Timestamp getModifiedAt();
 
   void setModifiedAt(Timestamp timestamp);
+
+  String getCreatedBy();
+
+  void setCreatedBy(String timestamp);
+
+  String getModifiedBy();
+
+  void setModifiedBy(String timestamp);
+
 }
