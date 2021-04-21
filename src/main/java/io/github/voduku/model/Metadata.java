@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 
 /**
  * Listener to update metadata
+ * You should do @EntityListeners(Metadata.class) in order for them to be auto updated
  *
  * @author VuDo
  * @since 3/31/2021
