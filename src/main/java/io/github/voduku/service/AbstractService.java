@@ -3,6 +3,7 @@ package io.github.voduku.service;
 import io.github.voduku.model.AbstractMapper;
 import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.repository.Repository;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Function;
@@ -12,6 +13,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -40,6 +42,8 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
 
   @Autowired(required = false)
   protected ResourceBundle resourceBundle;
+  @Autowired(required = false)
+  protected MessageSource messageSource;
   @Autowired
   protected Repository<ENTITY, KEY> repo;
   @Autowired
@@ -53,12 +57,12 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
   protected Function<RESPONSE, RESPONSE> afterSearchPage = response -> response;
   protected Function<AbstractSearch<?>, AbstractSearch<?>> searchTransformer = params -> params;
 
-  protected Supplier<Exception> createException = () -> new Exception(getResourceBundle().getString("err.default"));
-  protected Supplier<Exception> updateException = () -> new Exception(getResourceBundle().getString("err.default"));
-  protected Supplier<Exception> deleteException = () -> new Exception(getResourceBundle().getString("err.default"));
+  protected Supplier<Exception> createException = () -> new Exception(getMessage("err.default"));
+  protected Supplier<Exception> updateException = () -> new Exception(getMessage("err.default"));
+  protected Supplier<Exception> deleteException = () -> new Exception(getMessage("err.default"));
   protected Supplier<Exception> findException = NoResultException::new;
-  protected Supplier<Exception> searchException = () -> new Exception(getResourceBundle().getString("err.default"));
-  protected Supplier<Exception> searchPageException = () -> new Exception(getResourceBundle().getString("err.default"));
+  protected Supplier<Exception> searchException = () -> new Exception(getMessage("err.default"));
+  protected Supplier<Exception> searchPageException = () -> new Exception(getMessage("err.default"));
 
   /**
    * Check if there exists an entity with the given key
@@ -196,5 +200,10 @@ public abstract class AbstractService<REQUEST, RESPONSE, ENTITY, KEY> implements
         .map(slice -> slice.map(getMapper()::toResponse))
         .map(slice -> slice.map(getAfterSearchPage()))
         .orElseThrow(getSearchPageException());
+  }
+
+  protected String getMessage(String messageCode) {
+    return messageSource != null ? messageSource.getMessage(messageCode, new Object[0], Locale.getDefault()) :
+        resourceBundle!=null ? resourceBundle.getString(messageCode) : "There is no resource available to get message";
   }
 }
