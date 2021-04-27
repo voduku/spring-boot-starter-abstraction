@@ -3,8 +3,7 @@ package io.github.voduku.model;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import lombok.Builder;
-import lombok.Value;
-import lombok.extern.jackson.Jacksonized;
+import lombok.Data;
 import org.springframework.validation.FieldError;
 
 /**
@@ -13,9 +12,8 @@ import org.springframework.validation.FieldError;
  * @author VuDo
  * @since 1.0.0
  */
-@Value
+@Data
 @Builder(toBuilder = true)
-@Jacksonized
 public class RestResult<T> {
 
   public static final String STATUS_SUCCESS = "success";
