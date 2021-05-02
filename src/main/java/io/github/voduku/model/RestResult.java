@@ -1,9 +1,12 @@
 package io.github.voduku.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.FieldError;
 
 /**
@@ -55,9 +58,14 @@ public class RestResult<T> {
     return new RestResultBuilder<Void>().status(RestResult.STATUS_ERROR).message(message).build();
   }
 
-  public static RestResult<Void> error(Collection<FieldError> messages) {
+  public static RestResult<Void> error(Collection<FieldError> errors) {
+    MultiValueMap<String, String> errorMessages = new LinkedMultiValueMap<>();
+    errors.forEach(error -> errorMessages.add(error.getField(), error.getDefaultMessage()));
+    List<String> messages = new ArrayList<>();
+    errorMessages.forEach((field, msg) -> messages.add(field + " " + String.join(" or ", msg)));
     return new RestResultBuilder<Void>().status(RestResult.STATUS_ERROR)
-        .message(messages.stream().map(error -> error.getField() + " " + error.getDefaultMessage()).collect(Collectors.joining("\r\n")))
-        .messages(messages.stream().map(error -> error.getField() + " " + error.getDefaultMessage()).collect(Collectors.toList())).build();
+        .message(String.join("\r\n", messages))
+        .messages(messages)
+        .build();
   }
 }
