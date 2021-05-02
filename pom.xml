@@ -28,6 +28,7 @@
     <java.version>11</java.version>
     <springdoc.version>1.5.7</springdoc.version>
     <mapstruct.version>1.4.2.Final</mapstruct.version>
+    <hibernate.validator.version>7.0.1.Final</hibernate.validator.version>
   </properties>
 
   <dependencies>
@@ -71,7 +72,7 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>7.0.1.Final</version>
+      <version>${hibernate.validator.version}</version>
     </dependency>
 
     <dependency>
