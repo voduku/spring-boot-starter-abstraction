@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -120,6 +121,20 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
     return ResponseEntity.ok(RestResult.ok(service.searchPage(params, pageable), "Get data success"));
   }
 
+  @GetMapping("/exist")
+  @Operation(description = "Check if data exists")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Check data exists success"),
+      @ApiResponse(responseCode = "400", description = "Bad request. Check errors return in property 'messages'"),
+      @ApiResponse(responseCode = "401", description = "Either request needs bearer or profile doesn't have permission or profile doesn't own the data"),
+      @ApiResponse(responseCode = "403", description = "Either request needs bearer or profile doesn't have permission"),
+      @ApiResponse(responseCode = "404", description = "Won't happen unless your path is wrong"),
+      @ApiResponse(responseCode = "500", description = "This happens when there is something wrong with the server. Ex: Database connection failed, Micro-services communication failed, etc.")
+  })
+  public ResponseEntity<RestResult<Boolean>> exists(@ParameterObject @NotNull @Valid KEY id) {
+    return ResponseEntity.ok(RestResult.ok(service.exists(id), "Check data exists success"));
+  }
+
   @PostMapping
   @Operation(description = "Create data")
   @ApiResponses({
@@ -130,7 +145,7 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
       @ApiResponse(responseCode = "404", description = "Won't happen unless your path is wrong"),
       @ApiResponse(responseCode = "500", description = "This happens when there is something wrong with the server. Ex: Database connection failed, Micro-services communication failed, etc.")
   })
-  public ResponseEntity<RestResult<RESPONSE>> create(@ParameterObject @Valid KEY id, @RequestBody @Valid REQUEST request) {
+  public ResponseEntity<RestResult<RESPONSE>> create(@ParameterObject @Nullable @Valid KEY id, @RequestBody @Valid REQUEST request) {
     return ResponseEntity.ok(RestResult.ok(service.create(id, request), "Create data success"));
   }
 
@@ -143,7 +158,7 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
       @ApiResponse(responseCode = "404", description = "Won't happen unless your path is wrong"),
       @ApiResponse(responseCode = "500", description = "This happens when there is something wrong with the server. Ex: Database connection failed, Micro-services communication failed, etc.")
   })
-  public ResponseEntity<RestResult<RESPONSE>> update(@ParameterObject @NotNull @Valid KEY id, @Valid @RequestBody REQUEST request) {
+  public ResponseEntity<RestResult<RESPONSE>> update(@ParameterObject @NotNull @Valid KEY id, @RequestBody @Valid REQUEST request) {
     return ResponseEntity.ok(RestResult.ok(service.update(id, request), "Update data success"));
   }
 
