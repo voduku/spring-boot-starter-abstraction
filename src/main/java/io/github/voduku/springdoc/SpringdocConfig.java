@@ -24,7 +24,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
-import org.springdoc.core.SpringDocUtils;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
@@ -43,17 +42,17 @@ public class SpringdocConfig {
   private static final String ID = "id";
   private static final String QUERY = "query";
   private static final String CUSTOM = "Custom";
-
+  private static final List<Class<?>> unparsableIdTypes = List.of(Long.class, String.class);
 
   @Bean
   public OperationCustomizer customizer() {
-    SpringDocUtils.getConfig().replaceWithClass(Long.class, long.class);
     return (ops, handlerMethod) -> {
       if (ops.getParameters() == null) {
         ops.setParameters(new ArrayList<>());
       }
-      if (Arrays.stream(handlerMethod.getMethodParameters()).anyMatch(param -> param.getParameterType().equals(Long.class))) {
-        ops.getParameters().add(0, new Parameter().name(ID).in(QUERY).required(true).schema(new Schema<Long>()));
+      if (Arrays.stream(handlerMethod.getMethodParameters()).anyMatch(param -> unparsableIdTypes.contains(param.getParameterType()))) {
+        var schema = getSchema(handlerMethod.getMethodParameters()[0].getParameterType());
+        ops.getParameters().add(0, new Parameter().name(ID).in(QUERY).required(true).schema(schema));
       }
       customizeForCriteria(ops, handlerMethod);
       ops.getParameters().stream().filter(parameter -> EXPLICIT_SEARCH_PARAMETERS.contains(parameter.getName()))
@@ -133,5 +132,17 @@ public class SpringdocConfig {
       return "You can use .eq, .in, .isNull, .gt, .lt, .gte, .lte with corresponding data type and sql semantic to apply filtering";
     }
     return null;
+  }
+
+  private Schema<?> getSchema(Class<?> clazz) {
+    if (clazz == null) {
+      throw new IllegalArgumentException("Schema class must not be null");
+    } else if (clazz == String.class) {
+      return new Schema<String>();
+    } else if (clazz == Long.class) {
+      return new Schema<Long>();
+    } else {
+      return new Schema<>();
+    }
   }
 }
