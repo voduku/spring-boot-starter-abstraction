@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Slf4j
 @Getter
 @Setter
-public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, KEY extends Serializable> {
+public class AbstractController<REQUEST, RESPONSE, SEARCH extends AbstractSearch<?>, KEY extends Serializable> {
 
   protected static final String CUSTOM = "/custom";
 
@@ -52,7 +52,7 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
   protected static final String PAGE = "/page";
 
   @Autowired
-  protected Service<REQUEST, RESPONSE, KEY> service;
+  protected Service<REQUEST, RESPONSE, SEARCH, KEY> service;
 
   @GetMapping
   @Operation(description = "Get data by ID. All parameters are required")
@@ -80,7 +80,7 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
       @ApiResponse(responseCode = "404", description = "Either your path is wrong or there is no data for the given ID"),
       @ApiResponse(responseCode = "500", description = "This happens when there is something wrong with the server. Ex: Database connection failed, Micro-services communication failed, etc.")
   })
-  public ResponseEntity<RestResult<RESPONSE>> getCustom(@ParameterObject @NotNull @Valid KEY id, @ParameterObject @Valid S params) {
+  public ResponseEntity<RestResult<RESPONSE>> getCustom(@ParameterObject @NotNull @Valid KEY id, @ParameterObject @Valid SEARCH params) {
     return ResponseEntity.ok(RestResult.ok(service.get(id, params), "Get data success"));
   }
 
@@ -98,7 +98,7 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
       @ApiResponse(responseCode = "404", description = "Won't happen unless your path is wrong"),
       @ApiResponse(responseCode = "500", description = "This happens when there is something wrong with the server. Ex: Database connection failed, Micro-services communication failed, etc.")
   })
-  public ResponseEntity<RestResult<Slice<RESPONSE>>> getSlice(@ParameterObject @Valid S params, @ParameterObject Pageable pageable) {
+  public ResponseEntity<RestResult<Slice<RESPONSE>>> getSlice(@ParameterObject @Valid SEARCH params, @ParameterObject Pageable pageable) {
     return ResponseEntity.ok(RestResult.ok(service.search(params, pageable), "Get data success"));
   }
 
@@ -117,7 +117,7 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
       @ApiResponse(responseCode = "404", description = "Won't happen unless your path is wrong"),
       @ApiResponse(responseCode = "500", description = "This happens when there is something wrong with the server. Ex: Database connection failed, Micro-services communication failed, etc.")
   })
-  public ResponseEntity<RestResult<Page<RESPONSE>>> getPage(@ParameterObject @Valid S params, @ParameterObject Pageable pageable) {
+  public ResponseEntity<RestResult<Page<RESPONSE>>> getPage(@ParameterObject @Valid SEARCH params, @ParameterObject Pageable pageable) {
     return ResponseEntity.ok(RestResult.ok(service.searchPage(params, pageable), "Get data success"));
   }
 
@@ -187,13 +187,6 @@ public class AbstractController<REQUEST, RESPONSE, S extends AbstractSearch<?>, 
     log.error(exception.getMessage(), exception);
     return ResponseEntity.badRequest().body(RestResult.error(exception.getFieldErrors()));
   }
-
-//  @ExceptionHandler({FeignClientException.class})
-//  public ResponseEntity<RestResult<String>> handleFeignClientException(FeignClientException exception) {
-//    log.error(exception.getMessage(), exception);
-//    return new ResponseEntity<>(RestResult.error(exception.getData(), exception.getMessage()),
-//        exception.getHttpStatus() != null ? exception.getHttpStatus() : HttpStatus.INTERNAL_SERVER_ERROR);
-//  }
 
   @ExceptionHandler({AccessDeniedException.class})
   public ResponseEntity<RestResult<Void>> handleAccessDeniedException(AccessDeniedException exception) {
