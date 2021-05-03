@@ -14,7 +14,7 @@ import org.springframework.data.domain.Slice;
  * @author VuDo
  * @since 1.0.0
  */
-public interface Service<REQUEST, RESPONSE, KEY> {
+public interface Service<REQUEST, RESPONSE, SEARCH extends AbstractSearch<?>, KEY> {
 
   boolean exists(KEY key);
 
@@ -24,11 +24,11 @@ public interface Service<REQUEST, RESPONSE, KEY> {
 
   RESPONSE get(KEY key);
 
-  RESPONSE get(KEY key, AbstractSearch<?> parameters);
+  RESPONSE get(KEY key, SEARCH parameters);
 
   void delete(KEY key);
 
-  Slice<RESPONSE> search(AbstractSearch<?> parameters, Pageable pageable);
+  Slice<RESPONSE> search(SEARCH parameters, Pageable pageable);
 
-  Page<RESPONSE> searchPage(AbstractSearch<?> parameters, Pageable pageable);
+  Page<RESPONSE> searchPage(SEARCH parameters, Pageable pageable);
 }
