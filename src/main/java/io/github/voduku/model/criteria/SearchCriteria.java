@@ -1,5 +1,6 @@
 package io.github.voduku.model.criteria;
 
+import java.util.Collection;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 public class SearchCriteria<T> {
 
   T eq;
-  T[] in;
+  Collection<? extends T> in;
   Boolean isNull;
 
   public T getEq() {
@@ -30,11 +31,11 @@ public class SearchCriteria<T> {
     return this;
   }
 
-  public T[] getIn() {
+  public Collection<? extends T> getIn() {
     return this.in;
   }
 
-  public SearchCriteria<T> setIn(T[] in) {
+  public SearchCriteria<T> setIn(Collection<? extends T> in) {
     this.in = in;
     return this;
   }
