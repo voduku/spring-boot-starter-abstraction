@@ -160,7 +160,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     TypedQuery<ENTITY> query = entityManager.createQuery(cq);
     query.setFirstResult((int) pageable.getOffset());
     query.setMaxResults(pageable.getPageSize());
-    return entityManager.createQuery(cq).getResultList();
+    return query.getResultList();
   }
 
   protected List<ENTITY> customFindAll(AbstractSearch<?> params, Pageable pageable) {
