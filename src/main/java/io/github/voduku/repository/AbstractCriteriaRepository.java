@@ -157,6 +157,9 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     cq = criteria(cq, root, params);
     cq = groupBy(cq, root);
     cq = orderBy(cq, root, pageable.getSort());
+    TypedQuery<ENTITY> query = entityManager.createQuery(cq);
+    query.setFirstResult((int) pageable.getOffset());
+    query.setMaxResults(pageable.getPageSize());
     return entityManager.createQuery(cq).getResultList();
   }
 
@@ -169,7 +172,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     TypedQuery<Tuple> query = entityManager.createQuery(cq);
     query.setFirstResult((int) pageable.getOffset());
     query.setMaxResults(pageable.getPageSize());
-    return query.getResultList().stream().map(tuple -> mapRowToObject(includes.toArray(new String[0]), tuple.toArray(), clazz)).collect(Collectors.toList());
+    return query.getResultList().stream().map(tuple -> mapRowToObject(includes.toArray(String[]::new), tuple.toArray(), clazz)).collect(Collectors.toList());
 
   }
 
