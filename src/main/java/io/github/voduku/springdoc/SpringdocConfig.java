@@ -17,6 +17,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,16 +85,30 @@ public class SpringdocConfig {
       operation.getParameters().removeIf(param -> param.getName().contains(DOT));
       return;
     }
-    Arrays.stream(handlerMethod.getMethodParameters())
+    var fieldSchemas = Arrays.stream(handlerMethod.getMethodParameters())
         .map(MethodParameter::getParameterType)
         .filter(AbstractSearch.class::isAssignableFrom)
         .map(Class::getDeclaredFields)
         .flatMap(Arrays::stream)
-        .map(field -> {
-          Schema<?> schema = getSchema(field);
-          return new Parameter().in(QUERY).name(field.getName() + EQUAL).schema(schema).description(getDescription(schema));
-        })
-        .forEach(operation::addParametersItem);
+        .collect(Collectors.toMap(Field::getName, this::getSchema));
+
+    var paramNames = new HashSet<>();
+    List<Parameter> toBeRemoved = new ArrayList<>();
+    var operationParameters = operation.getParameters();
+    operationParameters.forEach(param -> {
+      String name = param.getName().split("\\.")[0];
+      if (!param.getName().contains(DOT)) {
+        return;
+      }
+      if (paramNames.contains(name)) {
+        toBeRemoved.add(param);
+        return;
+      }
+      paramNames.add(name);
+      Schema<?> schema = fieldSchemas.get(name);
+      param.name(name + EQUAL).schema(schema).description(getDescription(schema));
+    });
+    operationParameters.removeAll(toBeRemoved);
   }
 
   @SneakyThrows
