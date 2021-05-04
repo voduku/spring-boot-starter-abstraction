@@ -22,7 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -145,7 +144,7 @@ public class AbstractController<REQUEST, RESPONSE, SEARCH extends AbstractSearch
       @ApiResponse(responseCode = "404", description = "Won't happen unless your path is wrong"),
       @ApiResponse(responseCode = "500", description = "This happens when there is something wrong with the server. Ex: Database connection failed, Micro-services communication failed, etc.")
   })
-  public ResponseEntity<RestResult<RESPONSE>> create(@ParameterObject @Nullable @Valid KEY id, @RequestBody @Valid REQUEST request) {
+  public ResponseEntity<RestResult<RESPONSE>> create(@ParameterObject @Valid KEY id, @RequestBody @Valid REQUEST request) {
     return ResponseEntity.ok(RestResult.ok(service.create(id, request), "Create data success"));
   }
 

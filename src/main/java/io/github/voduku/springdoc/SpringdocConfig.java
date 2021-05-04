@@ -1,5 +1,7 @@
 package io.github.voduku.springdoc;
 
+import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
+
 import io.github.voduku.model.AbstractEntity;
 import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.model.AbstractSearch.Fields;
@@ -27,6 +29,9 @@ import lombok.SneakyThrows;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.method.HandlerMethod;
 
 /**
@@ -43,23 +48,43 @@ public class SpringdocConfig {
   private static final String ID = "id";
   private static final String QUERY = "query";
   private static final String CUSTOM = "Custom";
-  private static final List<Class<?>> unparsableIdTypes = List.of(Long.class, String.class);
+  private static final List<Class<?>> unparsableIdTypes = List.of(
+      Boolean.TYPE, boolean.class,
+      Character.TYPE, Character[].class, CharSequence.class, char.class, char[].class, String.class,
+      byte.class, short.class, int.class, long.class, float.class, double.class,
+      Byte.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
 
   @Bean
   public OperationCustomizer customizer() {
-    return (ops, handlerMethod) -> {
-      if (ops.getParameters() == null) {
-        ops.setParameters(new ArrayList<>());
+    return (op, handlerMethod) -> {
+      if (op.getParameters() == null) {
+        op.setParameters(new ArrayList<>());
       }
       if (Arrays.stream(handlerMethod.getMethodParameters()).anyMatch(param -> unparsableIdTypes.contains(param.getParameterType()))) {
         var schema = getSchema(handlerMethod.getMethodParameters()[0].getParameterType());
-        ops.getParameters().add(0, new Parameter().name(ID).in(QUERY).required(true).schema(schema));
+        op.getParameters().add(0, new Parameter().name(ID).in(QUERY).required(true).schema(schema));
       }
-      customizeForCriteria(ops, handlerMethod);
-      ops.getParameters().stream().filter(parameter -> EXPLICIT_SEARCH_PARAMETERS.contains(parameter.getName()))
+      customizePostCreate(op, handlerMethod);
+      customizeCriteria(op, handlerMethod);
+      op.getParameters().stream().filter(parameter -> EXPLICIT_SEARCH_PARAMETERS.contains(parameter.getName()))
           .forEach(parameter -> setEnumForParameter(parameter, handlerMethod));
-      return ops;
+      return op;
     };
+  }
+
+  private void customizePostCreate(Operation operation, HandlerMethod handlerMethod) {
+    if (handlerMethod.getMethod().getAnnotation(PostMapping.class) == null) {
+      return;
+    }
+    if (!CollectionUtils.isEmpty(operation.getParameters())
+        && operation.getParameters().size() == 1
+        && unparsableIdTypes.contains(handlerMethod.getMethodParameters()[0].getParameterType())) {
+      Parameter parameter = operation.getParameters().get(0).required(false);
+      if (!StringUtils.hasLength(parameter.getDescription())) {
+        parameter.description("This param could be required if ID is not auto-generated but swagger won't be able to tell. Check with the dev(s)");
+      }
+      operation.getRequestBody().getContent().get(APPLICATION_JSON_VALUE).getSchema().getProperties().remove(parameter.getName());
+    }
   }
 
   private void setEnumForParameter(Parameter parameter, HandlerMethod handlerMethod) {
@@ -77,7 +102,7 @@ public class SpringdocConfig {
     return Arrays.stream(c.getEnumConstants()).map(Enum::name).collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  private void customizeForCriteria(Operation operation, HandlerMethod handlerMethod) {
+  private void customizeCriteria(Operation operation, HandlerMethod handlerMethod) {
     if (OPERATIONS_TO_BE_FILTERED.stream().noneMatch(operation.getOperationId()::contains)) {
       return;
     }
