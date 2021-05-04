@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.persistence.Tuple;
@@ -70,8 +71,8 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
    * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is the
    * fastest but requires you to do tedious works if you have many entities.
    */
-  public AbstractCriteriaRepository(Class<ENTITY> entity, List<String> idFields) {
-    super(entity, idFields);
+  public AbstractCriteriaRepository(Class<ENTITY> entity, List<String> idFields, Set<String> fields) {
+    super(entity, idFields, fields);
   }
 
   @PostConstruct
@@ -239,12 +240,11 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
 
     if (params != null) {
       Map<String, Map<Operator, Object>> paramMap = mapper.convertValue(params, mapType);
-      paramMap.entrySet().forEach(entry -> predicates.addAll(getParamPredicates(root, entry)));
+      paramMap.entrySet().stream().filter(entry -> fields.contains(entry.getKey())).forEach(entry -> predicates.addAll(getParamPredicates(root, entry)));
     }
 
     return cq.where(predicates.toArray(Predicate[]::new));
   }
-
 
   protected CriteriaQuery<ENTITY> groupBy(CriteriaQuery<ENTITY> cq, Root<ENTITY> root) {
     return cq.groupBy(idFields.stream().map(root::get).collect(Collectors.toUnmodifiableList()));

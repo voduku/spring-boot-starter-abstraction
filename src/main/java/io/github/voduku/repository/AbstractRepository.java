@@ -78,6 +78,7 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
   protected final Class<ENTITY> clazz;
   protected final String entityName;
   protected final List<String> idFields;
+  protected final Set<String> fields;
   @PersistenceContext
   protected EntityManager entityManager;
   @Setter
@@ -95,6 +96,7 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
     this.entityName = clazz.getSimpleName();
     this.idFields = Arrays.stream(clazz.getDeclaredFields()).filter(field -> Objects.nonNull(field.getAnnotation(Id.class))).map(Field::getName)
         .collect(Collectors.toUnmodifiableList());
+    this.fields = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).collect(Collectors.toUnmodifiableSet());
   }
 
   /**
@@ -106,16 +108,18 @@ public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRep
     this.entityName = clazz.getSimpleName();
     this.idFields = Arrays.stream(clazz.getDeclaredFields()).filter(field -> Objects.nonNull(field.getAnnotation(Id.class))).map(Field::getName)
         .collect(Collectors.toUnmodifiableList());
+    this.fields = Arrays.stream(clazz.getDeclaredFields()).map(Field::getName).collect(Collectors.toUnmodifiableSet());
   }
 
   /**
    * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is the
    * fastest but requires you to do tedious works if you have many entities.
    */
-  public AbstractRepository(Class<ENTITY> clazz, List<String> idFields) {
+  public AbstractRepository(Class<ENTITY> clazz, List<String> idFields, Set<String> fields) {
     this.clazz = clazz;
     this.entityName = clazz.getSimpleName();
     this.idFields = idFields;
+    this.fields = fields;
   }
 
   /**
