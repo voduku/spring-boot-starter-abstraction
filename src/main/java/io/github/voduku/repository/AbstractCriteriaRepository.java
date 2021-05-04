@@ -277,7 +277,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
         if (attribute.getJavaType().isEnum()) {
           val = ((Collection<String>) val).stream().map(str -> Enum.valueOf(attribute.getJavaType().asSubclass(Enum.class), str)).collect(Collectors.toList());
         }
-        return attribute.in(val);
+        return attribute.in((Collection<?>) val);
       case gt:
         if (!(val instanceof Number)) {
           throw new IllegalArgumentException("Wrong input type for number or date");
