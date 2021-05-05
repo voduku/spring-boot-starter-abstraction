@@ -42,6 +42,7 @@
 
   <properties>
     <java.version>11</java.version>
+    <feign.version>11.1</feign.version>
     <springdoc.version>1.5.8</springdoc.version>
     <mapstruct.version>1.4.2.Final</mapstruct.version>
     <hibernate.validator.version>7.0.1.Final</hibernate.validator.version>
@@ -60,6 +61,13 @@
       <version>5.4.6</version>
       <scope>compile</scope>
     </dependency>
+
+    <dependency>
+      <groupId>io.github.openfeign</groupId>
+      <artifactId>feign-core</artifactId>
+      <version>${feign.version}</version>
+    </dependency>
+
 
     <dependency>
       <groupId>org.projectlombok</groupId>
