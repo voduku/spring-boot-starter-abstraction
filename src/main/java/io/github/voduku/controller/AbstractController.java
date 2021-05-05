@@ -1,5 +1,6 @@
 package io.github.voduku.controller;
 
+import feign.FeignException;
 import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.model.RestResult;
 import io.github.voduku.service.Service;
@@ -8,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.io.Serializable;
 import java.nio.file.AccessDeniedException;
+import java.util.Objects;
 import javax.persistence.NoResultException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -201,6 +203,12 @@ public class AbstractController<REQUEST, RESPONSE, SEARCH extends AbstractSearch
     }
     log.error(errorMessage, exception);
     return new ResponseEntity<>(RestResult.error(errorMessage), HttpStatus.NOT_FOUND);
+  }
+
+  @ExceptionHandler({FeignException.class})
+  public ResponseEntity<RestResult<Void>> handleFeignException(FeignException exception) {
+    log.error(exception.getMessage(), exception);
+    return new ResponseEntity<>(RestResult.error(exception.getMessage()), Objects.requireNonNull(HttpStatus.resolve(exception.status())));
   }
 
   @ExceptionHandler({Exception.class})
