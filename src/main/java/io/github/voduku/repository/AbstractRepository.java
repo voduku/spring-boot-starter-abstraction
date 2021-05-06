@@ -54,6 +54,7 @@ import org.springframework.util.StringUtils;
  * @since 1.0.0
  */
 @Slf4j
+@Deprecated
 public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRepository<ENTITY, KEY> {
 
   protected static final String EMPTY = "";
