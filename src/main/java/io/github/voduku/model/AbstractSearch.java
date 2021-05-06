@@ -39,12 +39,13 @@ public abstract class AbstractSearch<T extends Enum<T>> {
   @Parameter(hidden = true)
   protected Enum<T>[] excludables;
   @JsonIgnore
+  protected boolean distinct = false;
+  @JsonIgnore
   protected List<String> includes;
   @JsonIgnore
   protected List<String> excludes;
   @JsonIgnore
   protected boolean excludeMetadata = false;
-
   @JsonIgnore
   @Setter(AccessLevel.NONE)
   @Parameter(hidden = true)

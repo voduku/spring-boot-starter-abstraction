@@ -1,35 +1,59 @@
 package io.github.voduku.repository;
 
+import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
+import static com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS;
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS;
+
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.voduku.model.AbstractSearch;
-import io.github.voduku.model.BaseEntity;
 import io.github.voduku.model.criteria.Operator;
-import java.sql.Timestamp;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.Temporal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.Id;
+import javax.persistence.PersistenceContext;
 import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
+import org.hibernate.query.criteria.internal.predicate.ComparisonPredicate;
+import org.hibernate.query.criteria.internal.predicate.ComparisonPredicate.ComparisonOperator;
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.util.CollectionUtils;
 
 /**
@@ -43,41 +67,62 @@ import org.springframework.util.CollectionUtils;
  * @author VuDo
  * @since 1.0.0
  */
-public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY> extends AbstractRepository<ENTITY, KEY> {
+@Slf4j
+@Getter
+@Setter
+public abstract class AbstractCriteriaRepository<ENTITY, KEY> implements CustomizableRepository<ENTITY, KEY> {
 
   // @formatter:off
+  protected static final ObjectMapper mapper = new ObjectMapper().setSerializationInclusion(Include.NON_NULL)
+      .disable(FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(FAIL_ON_EMPTY_BEANS)
+      .enable(WRITE_DATES_AS_TIMESTAMPS);
   private static final TypeReference<LinkedHashMap<String, Object>> keyMapType = new TypeReference<>() {};
   private static final TypeReference<LinkedHashMap<String, Map<Operator, Object>>> mapType = new TypeReference<>() {};
   // @formatter:on
-  protected CriteriaBuilder cb;
+  protected final Class<ENTITY> clazz;
+  protected final String entityName;
+  protected final List<String> idFields = new ArrayList<>();
+  protected final Set<String> fields = new HashSet<>();
+  private final Map<String, Function<Object, ?>> javaDateInitializer = new HashMap<>();
+  private final Map<String, Function<Object, ?>> javaTemporalInitializer = new HashMap<>();
+  private final ZoneId defaultZone = ZoneId.systemDefault();
+  @PersistenceContext
+  protected EntityManager entityManager;
+  protected CriteriaBuilderImpl cb;
 
   /**
    * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This takes ~0.0001 seconds to
    * finish. It could be even faster on cloud server
    */
+  @SuppressWarnings("unchecked")
   public AbstractCriteriaRepository() {
-    super();
+    this.clazz = (Class<ENTITY>) Objects.requireNonNull(GenericTypeResolver.resolveTypeArguments(getClass(), AbstractCriteriaRepository.class))[0];
+    this.entityName = clazz.getSimpleName();
+    Arrays.stream(clazz.getDeclaredFields()).forEach(field -> {
+      this.fields.add(field.getName());
+      if (Objects.nonNull(field.getAnnotation(Id.class))) {
+        idFields.add(field.getName());
+      }
+      createInitializers(field);
+    });
   }
 
-  /**
-   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is even
-   * faster than {@link #AbstractCriteriaRepository()}
-   */
-  public AbstractCriteriaRepository(Class<ENTITY> entity) {
-    super(entity);
-  }
-
-  /**
-   * Initialize the class with necessary info to perform query creation. Using this should not be too bad since it only run once. This constructor is the
-   * fastest but requires you to do tedious works if you have many entities.
-   */
-  public AbstractCriteriaRepository(Class<ENTITY> entity, List<String> idFields, Set<String> fields) {
-    super(entity, idFields, fields);
+  public AbstractCriteriaRepository(Class<ENTITY> clazz) {
+    this.clazz = clazz;
+    this.entityName = clazz.getSimpleName();
+    Arrays.stream(clazz.getDeclaredFields()).forEach(field -> {
+      this.fields.add(field.getName());
+      if (Objects.nonNull(field.getAnnotation(Id.class))) {
+        idFields.add(field.getName());
+      }
+      createInitializers(field);
+    });
   }
 
   @PostConstruct
   public void initBuilder() {
-    this.cb = entityManager.getCriteriaBuilder();
+    this.cb = (CriteriaBuilderImpl) entityManager.getCriteriaBuilder();
   }
 
   /**
@@ -118,9 +163,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
    * @return an updated {@link ENTITY} which is never null other wise throw an exception if something goes wrong in the process. Ex: no entity found for the given key.
    */
   public Page<ENTITY> searchPage(AbstractSearch<?> params, Pageable pageable) {
-    long count = count(params);
-    List<ENTITY> results = count > 0 ? findEntities(params, pageable) : new ArrayList<>();
-    return new PageImpl<>(results, pageable, count);
+    return PageableExecutionUtils.getPage(findEntities(params, pageable), pageable, () -> count(params));
   }
 
   protected List<ENTITY> findEntities(AbstractSearch<?> params, Pageable pageable) {
@@ -134,7 +177,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
   protected ENTITY getByKey(KEY key, AbstractSearch<?> params) {
     CriteriaQuery<ENTITY> cq = cb.createQuery(clazz);
     Root<ENTITY> root = cq.from(clazz);
-    cq = select(cq, root);
+    cq = select(cq, root, params.isDistinct());
     cq = criteria(cq, root, key, params);
     cq = groupBy(cq, root);
     return entityManager.createQuery(cq).getSingleResult();
@@ -144,7 +187,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     List<String> includes = params.getIncludes();
     CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     Root<ENTITY> root = cq.from(clazz);
-    cq = customSelect(cq, root, includes);
+    cq = customSelect(cq, root, includes, params.isDistinct());
     cq = tupleCriteria(cq, root, key, params);
     TypedQuery<Tuple> query = entityManager.createQuery(cq);
     return mapRowToObject(includes.toArray(String[]::new), query.getSingleResult().toArray(), clazz);
@@ -153,7 +196,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
   protected List<ENTITY> findAll(AbstractSearch<?> params, Pageable pageable) {
     CriteriaQuery<ENTITY> cq = cb.createQuery(clazz);
     Root<ENTITY> root = cq.from(clazz);
-    cq = select(cq, root);
+    cq = select(cq, root, params.isDistinct());
     cq = criteria(cq, root, params);
     cq = groupBy(cq, root);
     cq = orderBy(cq, root, pageable.getSort());
@@ -167,7 +210,7 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     List<String> includes = params.getIncludes();
     CriteriaQuery<Tuple> cq = cb.createTupleQuery();
     Root<ENTITY> root = cq.from(clazz);
-    cq = customSelect(cq, root, includes);
+    cq = customSelect(cq, root, includes, params.isDistinct());
     cq = tupleCriteria(cq, root, params);
     TypedQuery<Tuple> query = entityManager.createQuery(cq);
     query.setFirstResult((int) pageable.getOffset());
@@ -184,12 +227,12 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     return entityManager.createQuery(cq).getSingleResult();
   }
 
-  protected CriteriaQuery<ENTITY> select(CriteriaQuery<ENTITY> cq, Root<ENTITY> root) {
-    return cq.select(root).distinct(isDistinct());
+  protected CriteriaQuery<ENTITY> select(CriteriaQuery<ENTITY> cq, Root<ENTITY> root, boolean distinct) {
+    return cq.select(root).distinct(distinct);
   }
 
-  protected CriteriaQuery<Tuple> customSelect(CriteriaQuery<Tuple> cq, Root<ENTITY> root, List<String> includes) {
-    return cq.multiselect(includes.stream().map(root::get).toArray(Selection[]::new)).distinct(isDistinct());
+  protected CriteriaQuery<Tuple> customSelect(CriteriaQuery<Tuple> cq, Root<ENTITY> root, List<String> includes, boolean distinct) {
+    return cq.multiselect(includes.stream().map(root::get).toArray(Selection[]::new)).distinct(distinct);
   }
 
   protected CriteriaQuery<Long> count(CriteriaQuery<Long> cq, Root<ENTITY> root) {
@@ -272,47 +315,20 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
     Path<?> attribute = root.get(column);
     switch (operator) {
       case eq:
-        if (attribute.getJavaType().isEnum()) {
-          val = Enum.valueOf(attribute.getJavaType().asSubclass(Enum.class), (String) val);
-        }
-        return cb.equal(attribute, val);
+        return resolvePredicate(column, attribute, ComparisonOperator.EQUAL, val);
       case in:
         if (attribute.getJavaType().isEnum()) {
           val = ((Collection<String>) val).stream().map(str -> Enum.valueOf(attribute.getJavaType().asSubclass(Enum.class), str)).collect(Collectors.toList());
         }
         return attribute.in((Collection<?>) val);
       case gt:
-        if (!(val instanceof Number)) {
-          throw new IllegalArgumentException("Wrong input type for number or date");
-        }
-        if (Number.class.isAssignableFrom(attribute.getJavaType())) {
-          return cb.gt(root.get(column), (Number) val);
-        }
-        return cb.greaterThan(root.get(column), new Timestamp(((Number) val).longValue()));
+        return resolvePredicate(column, attribute, ComparisonOperator.GREATER_THAN, val);
       case lt:
-        if (!(val instanceof Number)) {
-          throw new IllegalArgumentException("Wrong input type for number or date");
-        }
-        if (Number.class.isAssignableFrom(attribute.getJavaType())) {
-          return cb.lt(root.get(column), (Number) val);
-        }
-        return cb.lessThan(root.get(column), new Timestamp(((Number) val).longValue()));
+        return resolvePredicate(column, attribute, ComparisonOperator.LESS_THAN, val);
       case gte:
-        if (!(val instanceof Number)) {
-          throw new IllegalArgumentException("Wrong input type for number or date");
-        }
-        if (Number.class.isAssignableFrom(attribute.getJavaType())) {
-          return cb.ge(root.get(column), (Number) val);
-        }
-        return cb.greaterThanOrEqualTo(root.get(column), new Timestamp(((Number) val).longValue()));
+        return resolvePredicate(column, attribute, ComparisonOperator.GREATER_THAN_OR_EQUAL, val);
       case lte:
-        if (!(val instanceof Number)) {
-          throw new IllegalArgumentException("Wrong input type for number or date");
-        }
-        if (Number.class.isAssignableFrom(attribute.getJavaType())) {
-          return cb.lt(root.get(column), (Number) val);
-        }
-        return cb.lessThanOrEqualTo(root.get(column), new Timestamp(((Number) val).longValue()));
+        return resolvePredicate(column, attribute, ComparisonOperator.LESS_THAN_OR_EQUAL, val);
       case like:
         return cb.like(root.get(column), (String) val);
       case isNull:
@@ -320,6 +336,57 @@ public abstract class AbstractCriteriaRepository<ENTITY extends BaseEntity, KEY>
         return isNull ? cb.isNull(root.get(column)) : cb.isNotNull(root.get(column));
       default:
         throw new IllegalArgumentException("operator is not supported or wrong value type");
+    }
+  }
+
+  private Predicate resolvePredicate(String column, Path<?> attribute, ComparisonOperator operator, Object val) {
+    return new ComparisonPredicate(cb, operator, attribute, resolveValue(column, attribute, val));
+  }
+
+  @SneakyThrows
+  public Object resolveValue(String column, Path<?> attribute, Object val) {
+    if (Date.class.isAssignableFrom(attribute.getJavaType())) {
+      val = javaDateInitializer.get(column).apply(val);
+    }
+    if (Temporal.class.isAssignableFrom(attribute.getJavaType())) {
+      val = javaTemporalInitializer.get(column).apply(val);
+    }
+    if (attribute.getJavaType().isEnum()) {
+      val = Enum.valueOf(attribute.getJavaType().asSubclass(Enum.class), (String) val);
+    }
+    return val;
+  }
+
+  protected ENTITY mapRowToObject(String[] fields, Object[] columns, Class<ENTITY> clazz) {
+    if (fields == null || columns == null || columns.length != fields.length) {
+      throw new IllegalArgumentException("row columns and object fields does not match");
+    }
+    Map<String, Object> object = new HashMap<>();
+    for (int i = 0; i < columns.length; i++) {
+      object.put(fields[i], columns[i]);
+    }
+    return mapper.convertValue(object, clazz);
+  }
+
+  private void createInitializers(Field field) {
+    if (Date.class.isAssignableFrom(field.getType())) {
+      javaDateInitializer.put(field.getName(), (Object val) -> {
+        try {
+          return field.getType().getDeclaredConstructor(long.class).newInstance(((Number) val).longValue());
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+          throw new RuntimeException("can't instantiate date object");
+        }
+      });
+    }
+    if (Temporal.class.isAssignableFrom(field.getType())) {
+      javaTemporalInitializer.put(field.getName(), (Object val) -> {
+        try {
+          Instant instant = Instant.ofEpochMilli(((Number) val).longValue());
+          return field.getType().getDeclaredMethod("ofInstant", Instant.class, ZoneId.class).invoke(null, instant, defaultZone);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+          throw new RuntimeException("can't instantiate temporal object");
+        }
+      });
     }
   }
 }
