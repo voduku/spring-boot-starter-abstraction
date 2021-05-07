@@ -32,7 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
  * <br>You should also be to override logics by overriding methods such as {@link #getBeforeCreate()}, {@link #getAfterCreate()}, etc.
  * // @formatter:on
  *
- * @apiNote Service utilize mapstruct to provide quick and performant mapping for objects
+ * Service utilize mapstruct to provide quick and performant mapping for objects
+ *
  * @param <REQUEST>  Request Type. Request should only contains non-ID fields. Use {@link KEY} to map key fields
  * @param <RESPONSE> Response Type
  * @param <ENTITY>   Entity Type
