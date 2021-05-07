@@ -10,7 +10,7 @@
 
   <groupId>io.github.voduku</groupId>
   <artifactId>spring-boot-starter-abstraction</artifactId>
-  <version>1.1.2-SNAPSHOT</version>
+  <version>1.1.2</version>
 
   <name>spring-boot-starter-abstraction</name>
   <description>Demo project for Spring Boot</description>
@@ -28,7 +28,7 @@
     <url>https://github.com/voduku/spring-boot-starter-abstraction</url>
     <connection>scm:git:git://github.com/voduku/spring-boot-starter-abstraction.git</connection>
     <developerConnection>scm:git:git@github.com:voduku/spring-boot-starter-abstraction.git</developerConnection>
-    <tag>HEAD</tag>
+    <tag>1.1.2</tag>
   </scm>
 
   <developers>
