@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.voduku.model.AbstractSearch;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +56,7 @@ import org.springframework.util.StringUtils;
  */
 @Slf4j
 @Deprecated
-public abstract class AbstractRepository<ENTITY, KEY> implements CustomizableRepository<ENTITY, KEY> {
+public abstract class AbstractRepository<ENTITY, KEY extends Serializable> implements CustomizableRepository<ENTITY, KEY> {
 
   protected static final String EMPTY = "";
   protected static final String DISTINCT = " distinct ";

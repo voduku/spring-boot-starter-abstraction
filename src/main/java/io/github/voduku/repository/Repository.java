@@ -1,5 +1,6 @@
 package io.github.voduku.repository;
 
+import java.io.Serializable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
@@ -10,6 +11,6 @@ import org.springframework.data.repository.NoRepositoryBean;
  * @since 1.0.0
  */
 @NoRepositoryBean
-public interface Repository<ENTITY, KEY> extends JpaRepository<ENTITY, KEY>, CustomizableRepository<ENTITY, KEY> {
+public interface Repository<ENTITY, KEY extends Serializable> extends JpaRepository<ENTITY, KEY>, CustomizableRepository<ENTITY, KEY> {
 
 }

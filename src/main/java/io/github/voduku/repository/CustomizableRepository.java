@@ -1,6 +1,7 @@
 package io.github.voduku.repository;
 
 import io.github.voduku.model.AbstractSearch;
+import java.io.Serializable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -13,7 +14,7 @@ import org.springframework.data.domain.Slice;
  * @author VuDo
  * @since 1.0.0
  */
-public interface CustomizableRepository<ENTITY, KEY> {
+public interface CustomizableRepository<ENTITY, KEY extends Serializable> {
 
   /**
    * Get an entity with given {@link KEY} with optional functionalities to optimize database request and response
