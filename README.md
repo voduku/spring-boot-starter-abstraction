@@ -16,7 +16,7 @@ You can now get the dependency from maven central:
 <dependency>
     <groupId>io.github.voduku</groupId>
     <artifactId>spring-boot-starter-abstraction</artifactId>
-    <version>1.1.2</version> <!-- latest version -->
+    <version><!-- LATEST_VERSION --></version>
 </dependency>
 ```
 
