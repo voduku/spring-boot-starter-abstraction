@@ -6,8 +6,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -41,9 +43,9 @@ public abstract class AbstractSearch<T extends Enum<T>> {
   @JsonIgnore
   protected boolean distinct = false;
   @JsonIgnore
-  protected List<String> includes;
+  protected LinkedHashSet<String> includes;
   @JsonIgnore
-  protected List<String> excludes;
+  protected LinkedHashSet<String> excludes;
   @JsonIgnore
   protected boolean excludeMetadata = false;
   @JsonIgnore
@@ -57,7 +59,7 @@ public abstract class AbstractSearch<T extends Enum<T>> {
   @SuppressWarnings("unchecked")
   public AbstractSearch() {
     this.excludables = ((Class<T>) Objects.requireNonNull(GenericTypeResolver.resolveTypeArguments(getClass(), AbstractSearch.class))[0]).getEnumConstants();
-    this.includes = Arrays.stream(excludables).map(Enum::name).collect(Collectors.toList());
+    this.includes = Arrays.stream(excludables).map(Enum::name).collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   /**
@@ -67,15 +69,15 @@ public abstract class AbstractSearch<T extends Enum<T>> {
    */
   public AbstractSearch(Enum<T>[] excludables) {
     this.excludables = excludables;
-    this.includes = Arrays.stream(excludables).map(Enum::name).collect(Collectors.toList());
+    this.includes = Arrays.stream(excludables).map(Enum::name).collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
-  public void setIncludes(List<String> includes) {
+  public void setIncludes(LinkedHashSet<String> includes) {
     if (configured || CollectionUtils.isEmpty(includes)) {
       return;
     }
     this.includes = includes;
-    List<String> excludes = new ArrayList<>();
+    LinkedHashSet<String> excludes = new LinkedHashSet<>();
     for (Enum<T> field : excludables) {
       if (!includes.contains(field.name())) {
         excludes.add(field.name());
@@ -83,17 +85,17 @@ public abstract class AbstractSearch<T extends Enum<T>> {
     }
     if (excludeMetadata) {
       List<String> metadata = Arrays.stream(AbstractEntity.Fields.values()).map(Enum::name).collect(Collectors.toList());
-      this.includes = includes.stream().filter(not(metadata::contains)).collect(Collectors.toList());
+      this.includes = includes.stream().filter(not(metadata::contains)).collect(Collectors.toCollection(LinkedHashSet::new));
     }
     this.excludes = excludes;
   }
 
-  public void setExcludes(List<String> excludes) {
+  public void setExcludes(LinkedHashSet<String> excludes) {
     if (configured || CollectionUtils.isEmpty(excludes)) {
       return;
     }
     this.excludes = excludes;
-    List<String> includes = new ArrayList<>();
+    LinkedHashSet<String> includes = new LinkedHashSet<>();
     for (Enum<T> field : excludables) {
       if (!excludes.contains(field.name())) {
         includes.add(field.name());

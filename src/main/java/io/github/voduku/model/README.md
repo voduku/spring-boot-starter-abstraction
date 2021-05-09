@@ -25,6 +25,7 @@
       public StudentSearch extends AbstractSearch<Student.Fields>
       ```
     - Search options:
+        - distinct: distinct filtering
         - includes: field(s) (column(s)) in your query/response
         - excludes: field(s) (column(s)) in your query/response
         - excludeMetadata: true/false which is the quick way to exclude metadata
