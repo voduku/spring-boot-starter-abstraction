@@ -10,7 +10,7 @@
 
   <groupId>io.github.voduku</groupId>
   <artifactId>spring-boot-starter-abstraction</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
 
   <name>spring-boot-starter-abstraction</name>
   <description>Demo project for Spring Boot</description>
