@@ -32,3 +32,4 @@ There are quite some docs to read so take your time:
     - [Services](./src/main/java/io/github/voduku/service/README.md)
     - [Repositories](./src/main/java/io/github/voduku/repository/README.md)
     - [Srpingdoc](./src/main/java/io/github/voduku/springdoc/README.md)
+    

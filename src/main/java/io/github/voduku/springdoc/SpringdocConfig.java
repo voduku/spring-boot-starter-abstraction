@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -84,15 +85,25 @@ public abstract class SpringdocConfig {
 
   @SuppressWarnings("all")
   private void customizePostCreate(Operation operation, HandlerMethod handlerMethod) {
-    if (handlerMethod.getMethod().getAnnotation(PostMapping.class) == null) {
+    PostMapping annotation = handlerMethod.getMethod().getAnnotation(PostMapping.class);
+    if (annotation == null
+        || annotation.path() == null
+        || Arrays.stream(annotation.path()).anyMatch(path -> !Objects.equals(path, "/"))
+        || annotation.value() == null
+        || Arrays.stream(annotation.value()).anyMatch(path -> !Objects.equals(path, "/"))
+    ) {
       return;
     }
+
+    Schema<?> requestBody = operation.getRequestBody().getContent().get(APPLICATION_JSON_VALUE).getSchema();
+    Map<String, Schema> props = requestBody.getProperties();
+
     if (!CollectionUtils.isEmpty(operation.getParameters())
         && operation.getParameters().size() == 1
-        && unparsableIdTypes.contains(handlerMethod.getMethodParameters()[0].getParameterType())) {
+        && unparsableIdTypes.contains(handlerMethod.getMethodParameters()[0].getParameterType())
+        || props != null && props.containsKey(ID)
+    ) {
 
-      Schema<?> requestBody = operation.getRequestBody().getContent().get(APPLICATION_JSON_VALUE).getSchema();
-      Map<String, Schema> props = requestBody.getProperties();
       props.remove(ID);
       if (props.get(REQUEST) != null) {
         requestBody.set$ref(props.get(REQUEST).get$ref());
