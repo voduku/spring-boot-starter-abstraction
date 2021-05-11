@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.method.HandlerMethod;
 
 /**
@@ -75,7 +76,7 @@ public abstract class SpringdocConfig {
         var schema = getSchema(handlerMethod.getMethodParameters()[0].getParameterType());
         op.getParameters().add(0, new Parameter().name(ID).in(QUERY).required(true).schema(schema));
       }
-      customizePostCreate(op, handlerMethod);
+      customizePostCreateAndPutUpdate(op, handlerMethod);
       customizeCriteria(op, handlerMethod);
       op.getParameters().stream().filter(parameter -> EXPLICIT_SEARCH_PARAMETERS.contains(parameter.getName()))
           .forEach(parameter -> setEnumForParameter(parameter, handlerMethod));
@@ -84,13 +85,14 @@ public abstract class SpringdocConfig {
   }
 
   @SuppressWarnings("all")
-  private void customizePostCreate(Operation operation, HandlerMethod handlerMethod) {
-    PostMapping annotation = handlerMethod.getMethod().getAnnotation(PostMapping.class);
-    if (annotation == null
-        || annotation.path() == null
-        || Arrays.stream(annotation.path()).anyMatch(path -> !Objects.equals(path, "/"))
-        || annotation.value() == null
-        || Arrays.stream(annotation.value()).anyMatch(path -> !Objects.equals(path, "/"))
+  private void customizePostCreateAndPutUpdate(Operation operation, HandlerMethod handlerMethod) {
+    PostMapping post = handlerMethod.getMethod().getAnnotation(PostMapping.class);
+    PutMapping put = handlerMethod.getMethod().getAnnotation(PutMapping.class);
+    if (post == null || post.path() == null || post.value() == null || put == null || put.path() == null || put.value() == null
+        || Arrays.stream(post.path()).anyMatch(path -> !Objects.equals(path, "/"))
+        || Arrays.stream(post.value()).anyMatch(path -> !Objects.equals(path, "/"))
+        || Arrays.stream(put.path()).anyMatch(path -> !Objects.equals(path, "/"))
+        || Arrays.stream(put.value()).anyMatch(path -> !Objects.equals(path, "/"))
     ) {
       return;
     }
