@@ -111,6 +111,10 @@ public abstract class SpringdocConfig {
       PutMapping post = (PutMapping) annotation;
       paths = post.path();
       values = post.value();
+      if (Arrays.stream(handlerMethod.getMethodParameters()).anyMatch(param -> unparsableIdTypes.contains(param.getParameterType()))) {
+        var schema = getSchema(handlerMethod.getMethodParameters()[0].getParameterType());
+        operation.getParameters().add(0, new Parameter().name(ID).in(QUERY).required(true).schema(schema));
+      }
     }
 
     if (Arrays.stream(paths).anyMatch(p -> !Objects.equals(p, "/")) || Arrays.stream(values).anyMatch(p -> !Objects.equals(p, "/"))) {
