@@ -16,6 +16,7 @@ import io.swagger.v3.oas.models.media.NumberSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
@@ -76,7 +77,8 @@ public abstract class SpringdocConfig {
         var schema = getSchema(handlerMethod.getMethodParameters()[0].getParameterType());
         op.getParameters().add(0, new Parameter().name(ID).in(QUERY).required(true).schema(schema));
       }
-      customizePostCreateAndPutUpdate(op, handlerMethod);
+      customizePostCreate(op, handlerMethod);
+      customizePutUpdate(op, handlerMethod);
       customizeCriteria(op, handlerMethod);
       op.getParameters().stream().filter(parameter -> EXPLICIT_SEARCH_PARAMETERS.contains(parameter.getName()))
           .forEach(parameter -> setEnumForParameter(parameter, handlerMethod));
@@ -84,16 +86,34 @@ public abstract class SpringdocConfig {
     };
   }
 
-  @SuppressWarnings("all")
-  private void customizePostCreateAndPutUpdate(Operation operation, HandlerMethod handlerMethod) {
+  private void customizePostCreate(Operation operation, HandlerMethod handlerMethod) {
     PostMapping post = handlerMethod.getMethod().getAnnotation(PostMapping.class);
+    customizePostCreateAndPutUpdate(operation, handlerMethod, post);
+  }
+
+  private void customizePutUpdate(Operation operation, HandlerMethod handlerMethod) {
     PutMapping put = handlerMethod.getMethod().getAnnotation(PutMapping.class);
-    if (post == null || post.path() == null || post.value() == null || put == null || put.path() == null || put.value() == null
-        || Arrays.stream(post.path()).anyMatch(path -> !Objects.equals(path, "/"))
-        || Arrays.stream(post.value()).anyMatch(path -> !Objects.equals(path, "/"))
-        || Arrays.stream(put.path()).anyMatch(path -> !Objects.equals(path, "/"))
-        || Arrays.stream(put.value()).anyMatch(path -> !Objects.equals(path, "/"))
-    ) {
+    customizePostCreateAndPutUpdate(operation, handlerMethod, put);
+  }
+
+  @SuppressWarnings("all")
+  private void customizePostCreateAndPutUpdate(Operation operation, HandlerMethod handlerMethod, Annotation annotation) {
+    if (annotation == null) {
+      return;
+    }
+    String[] paths = new String[0];
+    String[] values = new String[0];
+    if (annotation instanceof PostMapping) {
+      PostMapping post = (PostMapping) annotation;
+      paths = post.path();
+      values = post.value();
+    } else if (annotation instanceof PutMapping) {
+      PutMapping post = (PutMapping) annotation;
+      paths = post.path();
+      values = post.value();
+    }
+
+    if (Arrays.stream(paths).anyMatch(p -> !Objects.equals(p, "/")) || Arrays.stream(values).anyMatch(p -> !Objects.equals(p, "/"))) {
       return;
     }
 
