@@ -61,7 +61,7 @@ public abstract class SpringdocConfig {
       Boolean.TYPE, boolean.class,
       Character.TYPE, Character[].class, CharSequence.class, char.class, char[].class, String.class,
       byte.class, short.class, int.class, long.class, float.class, double.class,
-      Byte.TYPE, Short.TYPE, Integer.TYPE, Long.TYPE, Float.TYPE, Double.TYPE);
+      Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class);
 
   @Autowired(required = false)
   private ApplicationContext context;
