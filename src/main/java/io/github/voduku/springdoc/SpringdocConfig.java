@@ -8,6 +8,7 @@ import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.model.AbstractSearch.Fields;
 import io.github.voduku.model.criteria.DateCriteria;
 import io.github.voduku.model.criteria.NumberCriteria;
+import io.github.voduku.model.criteria.SearchCriteria;
 import io.github.voduku.model.criteria.StringCriteria;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.IntegerSchema;
@@ -157,6 +158,9 @@ public abstract class SpringdocConfig {
     }
     if (field.getType().equals(NumberCriteria.class) || field.getType().equals(DateCriteria.class)) {
       return new IntegerSchema().format("int64");
+    }
+    if (SearchCriteria.class.isAssignableFrom(field.getType())){
+      return new StringSchema();
     }
     throw new UnsupportedOperationException("Field type in search class be a XCriteria type. Ex: StringCriteria");
   }
