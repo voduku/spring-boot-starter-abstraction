@@ -7,7 +7,6 @@ import io.github.voduku.model.AbstractEntity;
 import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.model.AbstractSearch.Fields;
 import io.github.voduku.model.criteria.DateCriteria;
-import io.github.voduku.model.criteria.DecimalCriteria;
 import io.github.voduku.model.criteria.NumberCriteria;
 import io.github.voduku.model.criteria.StringCriteria;
 import io.swagger.v3.oas.models.Operation;
@@ -155,9 +154,6 @@ public abstract class SpringdocConfig {
   private Schema<?> getSchema(Field field) {
     if (field.getType().equals(StringCriteria.class)) {
       return new StringSchema();
-    }
-    if (field.getType().equals(DecimalCriteria.class)) {
-      return new NumberSchema().format("decimal");
     }
     if (field.getType().equals(NumberCriteria.class) || field.getType().equals(DateCriteria.class)) {
       return new IntegerSchema().format("int64");

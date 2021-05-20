@@ -1,8 +1,10 @@
 package io.github.voduku.model.criteria;
 
-import lombok.Getter;
+import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 
@@ -10,8 +12,6 @@ import lombok.experimental.SuperBuilder;
  * @author VuDo
  * @since 1.0.0
  */
-@Getter
-@Setter
 @NoArgsConstructor
 @SuperBuilder(toBuilder = true)
 @Accessors(fluent = true, chain = true)
@@ -56,5 +56,23 @@ public class NumberCriteria extends SearchCriteria<Number> {
   public NumberCriteria setLte(Number lte) {
     this.lte = lte;
     return this;
+  }
+
+  @Override
+  public List<Predicate> handle(CriteriaBuilder cb, Expression<Number> expression) {
+    List<Predicate> predicates = handleCriteria(cb, expression);
+    if (gt != null) {
+      predicates.add(cb.gt(expression, gt));
+    }
+    if (gte != null) {
+      predicates.add(cb.ge(expression, gte));
+    }
+    if (lt != null) {
+      predicates.add(cb.lt(expression, lt));
+    }
+    if (lte != null) {
+      predicates.add(cb.le(expression, lte));
+    }
+    return predicates;
   }
 }

@@ -8,18 +8,16 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.voduku.model.AbstractSearch;
-import io.github.voduku.model.criteria.Operator;
+import io.github.voduku.model.criteria.SearchCriteria;
 import io.github.voduku.repository.ExtendedValueHandlerFactory.EnumValueHandler;
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.persistence.EntityManager;
@@ -27,7 +25,6 @@ import javax.persistence.Tuple;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
@@ -37,8 +34,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
 import org.hibernate.query.criteria.internal.ValueHandlerFactory.ValueHandler;
-import org.hibernate.query.criteria.internal.predicate.ComparisonPredicate;
-import org.hibernate.query.criteria.internal.predicate.ComparisonPredicate.ComparisonOperator;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -72,7 +67,7 @@ public class RepositoryImpl<ENTITY, KEY extends Serializable> extends SimpleJpaR
       .disable(FAIL_ON_EMPTY_BEANS)
       .enable(WRITE_DATES_AS_TIMESTAMPS);
   private static final TypeReference<LinkedHashMap<String, Object>> keyMapType = new TypeReference<>() {};
-  private static final TypeReference<LinkedHashMap<String, Map<Operator, Object>>> mapType = new TypeReference<>() {};
+  private static final TypeReference<LinkedHashMap<String, ? extends SearchCriteria<?>>> mapType = new TypeReference<>() {};
   private static final ZoneId defaultZone = ZoneId.systemDefault();
   // @formatter:on
   private final Class<ENTITY> clazz;
@@ -258,6 +253,7 @@ public class RepositoryImpl<ENTITY, KEY extends Serializable> extends SimpleJpaR
     return cq.orderBy(orders);
   }
 
+  @SneakyThrows
   protected CriteriaQuery<?> criteriaSql(CriteriaQuery<?> cq, Root<ENTITY> root, KEY key, AbstractSearch<?> params) {
     List<Predicate> predicates = new ArrayList<>();
 
@@ -267,8 +263,11 @@ public class RepositoryImpl<ENTITY, KEY extends Serializable> extends SimpleJpaR
     }
 
     if (params != null) {
-      Map<String, Map<Operator, Object>> paramMap = mapper.convertValue(params, mapType);
-      paramMap.entrySet().stream().filter(entry -> fields.containsKey(entry.getKey())).forEach(entry -> predicates.addAll(getParamPredicates(root, entry)));
+      params.getCriteria().forEach((column, handler) -> {
+        if (handler != null) {
+          predicates.addAll(handler.handle(cb, root.get(column)));
+        }
+      });
     }
 
     return cq.where(predicates.toArray(Predicate[]::new));
@@ -282,57 +281,6 @@ public class RepositoryImpl<ENTITY, KEY extends Serializable> extends SimpleJpaR
     List<Predicate> predicates = new ArrayList<>(keyMap.size());
     keyMap.forEach((k, v) -> predicates.add(cb.equal(root.get(k), v)));
     return predicates;
-  }
-
-  private List<Predicate> getParamPredicates(Root<ENTITY> root, Entry<String, Map<Operator, Object>> criteria) {
-    String column = criteria.getKey();
-    List<Predicate> predicates = new ArrayList<>(criteria.getValue().size());
-    criteria.getValue().forEach((k, v) -> predicates.add(getPredicate(root, column, k, v)));
-    return predicates;
-  }
-
-  @SneakyThrows
-  private Predicate getPredicate(Root<ENTITY> root, String column, Operator operator, Object val) {
-    Path<?> attribute = root.get(column);
-    switch (operator) {
-      case eq:
-        return resolvePredicate(column, attribute, ComparisonOperator.EQUAL, val);
-      case in:
-        return resolveInPredicate(attribute, val);
-      case gt:
-        return resolvePredicate(column, attribute, ComparisonOperator.GREATER_THAN, val);
-      case lt:
-        return resolvePredicate(column, attribute, ComparisonOperator.LESS_THAN, val);
-      case gte:
-        return resolvePredicate(column, attribute, ComparisonOperator.GREATER_THAN_OR_EQUAL, val);
-      case lte:
-        return resolvePredicate(column, attribute, ComparisonOperator.LESS_THAN_OR_EQUAL, val);
-      case like:
-        return cb.like(root.get(column), (String) val);
-      case isNull:
-        Boolean isNull = (Boolean) val;
-        return isNull ? cb.isNull(root.get(column)) : cb.isNotNull(root.get(column));
-      default:
-        throw new IllegalArgumentException("operator is not supported or wrong value type");
-    }
-  }
-
-  @SuppressWarnings({"all"})
-  private Predicate resolveInPredicate(Path<?> attribute, Object val) {
-    if (attribute.getJavaType().isEnum()) {
-      Class<? extends Enum> enumClass = attribute.getJavaType().asSubclass(Enum.class);
-      val = ((Collection<String>) val).stream().map(str -> Enum.valueOf(enumClass, str)).collect(Collectors.toList());
-    }
-    return attribute.in((Collection<?>) val);
-  }
-
-  private Predicate resolvePredicate(String column, Path<?> attribute, ComparisonOperator operator, Object val) {
-    return new ComparisonPredicate(cb, operator, attribute, resolveValue(column, val));
-  }
-
-  @SneakyThrows
-  public Object resolveValue(String column, Object val) {
-    return fields.get(column).convert(val);
   }
 
   @SuppressWarnings("all")
