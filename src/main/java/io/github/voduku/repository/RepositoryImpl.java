@@ -9,11 +9,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.model.criteria.SearchCriteria;
-import io.github.voduku.repository.ExtendedValueHandlerFactory.EnumValueHandler;
 import java.io.Serializable;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -33,7 +31,6 @@ import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.criteria.internal.CriteriaBuilderImpl;
-import org.hibernate.query.criteria.internal.ValueHandlerFactory.ValueHandler;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -67,13 +64,10 @@ public class RepositoryImpl<ENTITY, KEY extends Serializable> extends SimpleJpaR
       .disable(FAIL_ON_EMPTY_BEANS)
       .enable(WRITE_DATES_AS_TIMESTAMPS);
   private static final TypeReference<LinkedHashMap<String, Object>> keyMapType = new TypeReference<>() {};
-  private static final TypeReference<LinkedHashMap<String, ? extends SearchCriteria<?>>> mapType = new TypeReference<>() {};
-  private static final ZoneId defaultZone = ZoneId.systemDefault();
   // @formatter:on
   private final Class<ENTITY> clazz;
   private final String entityName;
   private final List<String> idFields = new ArrayList<>();
-  private final Map<String, ValueHandler<?>> fields = new HashMap<>();
   private final EntityManager em;
   private final CriteriaBuilderImpl cb;
 
@@ -88,11 +82,6 @@ public class RepositoryImpl<ENTITY, KEY extends Serializable> extends SimpleJpaR
     this.clazz = entityInformation.getJavaType();
     this.entityName = entityInformation.getEntityName();
     entityInformation.getIdAttributeNames().forEach(idFields::add);
-    Arrays.stream(clazz.getDeclaredFields()).forEach(field ->
-        this.fields.put(field.getName(), !field.getType().isEnum() ?
-            ExtendedValueHandlerFactory.determineAppropriateHandler(field.getType())
-            : new EnumValueHandler(field.getType())
-        ));
   }
 
   public Class<ENTITY> getEntityClass() {
