@@ -4,12 +4,10 @@ import static java.util.function.Predicate.not;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.Parameter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -34,7 +32,7 @@ import org.springframework.util.CollectionUtils;
 @Data
 @AllArgsConstructor
 @FieldNameConstants(asEnum = true)
-public abstract class AbstractSearch<T extends Enum<T>> {
+public abstract class AbstractSearch<T extends Enum<T>> implements Search {
 
   @JsonIgnore
   @Setter(AccessLevel.NONE)
@@ -88,6 +86,7 @@ public abstract class AbstractSearch<T extends Enum<T>> {
       this.includes = includes.stream().filter(not(metadata::contains)).collect(Collectors.toCollection(LinkedHashSet::new));
     }
     this.excludes = excludes;
+    this.configured = true;
   }
 
   public void setExcludes(LinkedHashSet<String> excludes) {
@@ -109,5 +108,6 @@ public abstract class AbstractSearch<T extends Enum<T>> {
       }
     }
     this.includes = includes;
+    this.configured = true;
   }
 }
