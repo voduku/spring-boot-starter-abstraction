@@ -45,7 +45,7 @@ public class StringCriteria extends SearchCriteria<String> {
 
   @Override
   public List<Predicate> handle(CriteriaBuilder cb, Expression<String> expression) {
-    if (caseSensitive) {
+    if (!caseSensitive) {
       expression = cb.upper(expression);
     }
     List<Predicate> predicates = handleCriteria(cb, expression);
