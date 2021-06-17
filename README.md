@@ -4,7 +4,7 @@ Provide abstractions for any projects that needs CRUD features
 
 Primary goals:
 
-- Enhance project init time with less coding but still maintain the ability to implement business logic (Server Layer)
+- Enhance project init time with less coding but still maintain the ability to implement business logic (Service Layer)
 - Provide the ability to customize response memory foot-print from frontend client side all the way to database and back
 - Utilize springdoc for easy yet precise api documentation
 
