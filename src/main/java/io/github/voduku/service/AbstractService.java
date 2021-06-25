@@ -23,7 +23,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * // @formatter:off
@@ -44,7 +43,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Setter
 @Getter
-@Transactional
 public abstract class AbstractService<REQUEST, RESPONSE, SEARCH extends AbstractSearch<?>, ENTITY, KEY extends Serializable> implements
     Service<REQUEST, RESPONSE, SEARCH, KEY> {
 

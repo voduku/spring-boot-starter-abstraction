@@ -1,6 +1,5 @@
 package io.github.voduku.controller;
 
-import feign.FeignException;
 import io.github.voduku.model.AbstractSearch;
 import io.github.voduku.model.RestResult;
 import io.github.voduku.service.Service;
@@ -8,8 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.io.Serializable;
-import java.util.Objects;
-import javax.persistence.NoResultException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import lombok.Getter;
@@ -17,17 +14,11 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -44,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Slf4j
 @Getter
 @Setter
-public class AbstractController<REQUEST, RESPONSE, SEARCH extends AbstractSearch<?>, KEY extends Serializable> {
+public class AbstractController<REQUEST, RESPONSE, SEARCH extends AbstractSearch<?>, KEY extends Serializable> extends BaseController {
 
   protected static final String CUSTOM = "/custom";
 
@@ -175,45 +166,5 @@ public class AbstractController<REQUEST, RESPONSE, SEARCH extends AbstractSearch
   public ResponseEntity<RestResult<Void>> delete(@ParameterObject @NotNull @Valid KEY id) {
     service.delete(id);
     return ResponseEntity.ok(RestResult.ok("Delete data success"));
-  }
-
-  @ExceptionHandler({IllegalArgumentException.class})
-  public ResponseEntity<RestResult<Void>> handleInvalidRequestException(Exception exception) {
-    log.error(exception.getMessage(), exception);
-    return ResponseEntity.badRequest().body(RestResult.error(exception.getLocalizedMessage()));
-  }
-
-  @ExceptionHandler({MethodArgumentNotValidException.class})
-  public ResponseEntity<RestResult<Void>> handleInvalidRequestException(MethodArgumentNotValidException exception) {
-    log.error(exception.getMessage(), exception);
-    return ResponseEntity.badRequest().body(RestResult.error(exception.getFieldErrors()));
-  }
-
-  @ExceptionHandler({AccessDeniedException.class})
-  public ResponseEntity<RestResult<Void>> handleAccessDeniedException(AccessDeniedException exception) {
-    log.error(exception.getMessage(), exception);
-    return new ResponseEntity<>(RestResult.error(exception.getMessage()), HttpStatus.UNAUTHORIZED);
-  }
-
-  @ExceptionHandler({NoResultException.class, EmptyResultDataAccessException.class})
-  public ResponseEntity<RestResult<Void>> handleNoResultException(Exception exception) {
-    String errorMessage = exception instanceof EmptyResultDataAccessException ? exception.getCause().getMessage() : exception.getMessage();
-    if (!StringUtils.hasLength(errorMessage)) {
-      errorMessage = "Can't find data with given ID";
-    }
-    log.error(errorMessage, exception);
-    return new ResponseEntity<>(RestResult.error(errorMessage), HttpStatus.NOT_FOUND);
-  }
-
-  @ExceptionHandler({FeignException.class})
-  public ResponseEntity<RestResult<Void>> handleFeignException(FeignException exception) {
-    log.error(exception.getMessage(), exception);
-    return new ResponseEntity<>(RestResult.error(exception.getMessage()), Objects.requireNonNull(HttpStatus.resolve(exception.status())));
-  }
-
-  @ExceptionHandler({Exception.class})
-  public ResponseEntity<RestResult<Void>> handleException(Exception exception) {
-    log.error(exception.getMessage(), exception);
-    return new ResponseEntity<>(RestResult.error(exception.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
   }
 }
