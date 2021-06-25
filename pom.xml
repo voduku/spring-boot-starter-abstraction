@@ -40,6 +40,15 @@
     </developer>
   </developers>
 
+  <contributors>
+    <contributor>
+      <email>luuhuuchuan@gmail.com</email>
+      <name>Chuan Luu</name>
+      <url>https://github.com/luuhuuchuan</url>
+      <id>ChuanLuu</id>
+    </contributor>
+  </contributors>
+
   <properties>
     <java.version>11</java.version>
     <feign.version>11.1</feign.version>
