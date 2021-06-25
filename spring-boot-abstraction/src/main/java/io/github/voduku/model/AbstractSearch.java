@@ -3,15 +3,18 @@ package io.github.voduku.model;
 import static java.util.function.Predicate.not;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.github.voduku.model.criteria.CriteriaHandler;
 import io.swagger.v3.oas.annotations.Parameter;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 import org.springframework.core.GenericTypeResolver;
@@ -32,12 +35,12 @@ import org.springframework.util.CollectionUtils;
 @Data
 @AllArgsConstructor
 @FieldNameConstants(asEnum = true)
-public abstract class AbstractSearch<T extends Enum<T>> implements Search {
+public abstract class AbstractSearch<T extends Enum<T>> implements Search{
 
   @JsonIgnore
   @Setter(AccessLevel.NONE)
   @Parameter(hidden = true)
-  protected Enum<T>[] excludables;
+  protected final Enum<T>[] excludables;
   @JsonIgnore
   protected boolean distinct = false;
   @JsonIgnore
@@ -50,6 +53,11 @@ public abstract class AbstractSearch<T extends Enum<T>> implements Search {
   @Setter(AccessLevel.NONE)
   @Parameter(hidden = true)
   private boolean configured = false;
+
+  @JsonIgnore
+  @Setter(AccessLevel.NONE)
+  @Parameter(hidden = true)
+  private Map<String, CriteriaHandler<?>> criteria;
 
   /**
    * Although this is slower than directly calling values(), performance is acceptable.

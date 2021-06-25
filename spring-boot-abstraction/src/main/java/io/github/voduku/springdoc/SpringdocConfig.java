@@ -45,7 +45,7 @@ import org.springframework.web.method.HandlerMethod;
 @RequiredArgsConstructor
 public abstract class SpringdocConfig {
 
-  private static final List<String> EXPLICIT_SEARCH_PARAMETERS = List.of(Fields.includes.name(), Fields.excludes.name());
+  private static final List<String> EXPLICIT_SEARCH_PARAMETERS = List.of("includes", "excludes");
   private static final Set<String> AVAILABLE_METADATA = Arrays.stream(AbstractEntity.Fields.values()).map(Enum::name).collect(Collectors.toSet());
   private static final List<String> OPERATIONS_TO_BE_FILTERED = List.of("getCustom", "getSlice", "getPage");
   private static final String DOT = ".";

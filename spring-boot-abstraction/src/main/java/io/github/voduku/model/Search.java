@@ -2,6 +2,7 @@ package io.github.voduku.model;
 
 import io.github.voduku.model.criteria.CriteriaHandler;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author VuDo
@@ -9,5 +10,7 @@ import java.util.Map;
  */
 public interface Search {
 
+  Set<String> getExcludes();
+  Set<String> getIncludes();
   Map<String, CriteriaHandler<?>> getCriteria();
 }

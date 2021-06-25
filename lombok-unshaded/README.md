@@ -1,0 +1,2 @@
+- All rights regarding the Project Lombok belongs to the Project Lombok Authors.
+- This module is an unshaded version of Lombok which is used for custom annotations for spring-boot-starter-abstraction

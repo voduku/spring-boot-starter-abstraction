@@ -27,9 +27,9 @@ You can now get the dependency from maven central:
 Following this diagram, all models will be shared between controllers, services and repositories.
 
 There are quite some docs to read so take your time:
-    - [Models](./src/main/java/io/github/voduku/model/README.md)
-    - [Controllers](./src/main/java/io/github/voduku/controller/README.md)
-    - [Services](./src/main/java/io/github/voduku/service/README.md)
-    - [Repositories](./src/main/java/io/github/voduku/repository/README.md)
-    - [Srpingdoc](./src/main/java/io/github/voduku/springdoc/README.md)
+    - [Models](spring-boot-abstraction/src/main/java/io/github/voduku/model/README.md)
+    - [Controllers](spring-boot-abstraction/src/main/java/io/github/voduku/controller/README.md)
+    - [Services](spring-boot-abstraction/src/main/java/io/github/voduku/service/README.md)
+    - [Repositories](spring-boot-abstraction/src/main/java/io/github/voduku/repository/README.md)
+    - [Srpingdoc](spring-boot-abstraction/src/main/java/io/github/voduku/springdoc/README.md)
     
